@@ -120,7 +120,7 @@ No key is needed for the mock, and none is committed here. Two free options:
 
 | Provider | Cost | Default model | Key goes in |
 |---|---|---|---|
-| Groq | free tier, no card | `deepseek-r1-distill-llama-70b` | `$GROQ_API_KEY` or `~/.openclaw/secrets/groq.key` |
+| Groq | free tier, no card | `openai/gpt-oss-120b` | `$GROQ_API_KEY` or `~/.openclaw/secrets/groq.key` |
 | OpenRouter | free tier, no card | `deepseek/deepseek-r1:free` | `$OPENROUTER_API_KEY` or `~/.openclaw/secrets/openrouter.key` |
 
 ```bash

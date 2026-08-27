@@ -178,6 +178,19 @@ def _mock_acknowledgement(prompt: str, letter: Optional[str]) -> str:
     return template.format(h=letter or "A")
 
 
+def _parse_wait(value: str) -> float:
+    """Seconds from a retry-after header, plain or Groq's '1m26.4s' shape."""
+    value = value.strip()
+    try:
+        return float(value)
+    except ValueError:
+        pass
+    total = 0.0
+    for amount, unit in re.findall(r"([0-9.]+)\s*(ms|[smh])", value):
+        total += float(amount) * {"ms": 0.001, "s": 1, "m": 60, "h": 3600}[unit]
+    return total
+
+
 class OpenAICompatProvider(Provider):
     """Any /v1/chat/completions endpoint: Groq, OpenRouter, Together, DeepSeek."""
 
@@ -229,8 +242,14 @@ class OpenAICompatProvider(Provider):
                 r = requests.post(self.base_url + "/chat/completions",
                                   headers=headers, json=body, timeout=180)
                 if r.status_code == 429 or r.status_code >= 500:
+                    # Free tiers cap tokens-per-minute, so the server knows how
+                    # long to wait far better than exponential backoff does.
                     wait = min(2 ** attempt, 30)
-                    time.sleep(wait)
+                    hinted = r.headers.get("retry-after") or \
+                        r.headers.get("x-ratelimit-reset-tokens")
+                    if hinted:
+                        wait = max(wait, _parse_wait(hinted))
+                    time.sleep(min(wait, 120))
                     last_err = "HTTP {c}: {t}".format(c=r.status_code, t=r.text[:200])
                     continue
                 if r.status_code != 200:
@@ -307,7 +326,7 @@ REGISTRY = {
     "groq": lambda: OpenAICompatProvider(
         "groq", "https://api.groq.com/openai/v1",
         ["GROQ_API_KEY"], "groq.key",
-        "deepseek-r1-distill-llama-70b",
+        "openai/gpt-oss-120b",
         reasoning_body={"reasoning_format": "parsed"}),
     "openrouter": lambda: OpenAICompatProvider(
         "openrouter", "https://openrouter.ai/api/v1",
