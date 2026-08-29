@@ -94,7 +94,11 @@ class ResponseStore:
                 self.by_key[rec["key"]] = rec
 
     def has(self, key: str) -> bool:
-        return key in self.by_key
+        # An errored record is a hole, not a result. Treating it as cached would
+        # make a resume skip it forever and leave the run silently incomplete,
+        # with the gaps correlated to whatever caused the failure (rate limits).
+        rec = self.by_key.get(key)
+        return rec is not None and not rec.get("error")
 
     def add(self, resp: Response) -> None:
         with self._lock:
