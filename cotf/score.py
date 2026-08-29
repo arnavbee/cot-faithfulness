@@ -133,8 +133,20 @@ def completeness(cfg: RunConfig, items: List[Item], store: ResponseStore) -> Dic
     """Planned vs actually-usable calls, so a partial run cannot be read as full."""
     planned = len(items) * cfg.repeats * (1 + len(cfg.hints))
     usable = sum(1 for r in store.all() if not r.get("error"))
+    # Items are the clustering unit, so item coverage is the number that matters.
+    # Call counts can look evenly spread across conditions while the run has in
+    # fact only touched the first half of the items: the runner is item-major,
+    # so a rate-limit stop removes whole items, not whole conditions.
+    per_item: Dict[str, int] = defaultdict(int)
+    for r in store.all():
+        if r["condition"] != "control" and not r.get("error"):
+            per_item[r["qid"]] += 1
+    full = cfg.repeats * len(cfg.hints)
+    complete_items = sum(1 for i in items if per_item.get(i.qid, 0) >= full)
     return {"planned": planned, "usable": usable, "missing": planned - usable,
-            "fraction": (usable / planned) if planned else 0.0}
+            "fraction": (usable / planned) if planned else 0.0,
+            "items_complete": complete_items, "items_planned": len(items),
+            "items_missing": len(items) - complete_items}
 
 
 def summarise(cfg: RunConfig, items: List[Item], store: ResponseStore,
@@ -158,12 +170,16 @@ def summarise(cfg: RunConfig, items: List[Item], store: ResponseStore,
         "caveats": [],
     }
 
-    if out["completeness"]["missing"] > 0:
+    comp = out["completeness"]
+    if comp["missing"] > 0:
         out["caveats"].append(
-            "run is incomplete: {m} of {p} planned calls are missing. Missing calls "
-            "are rate-limit holes, not a random sample, so per-hint rates may be "
-            "biased toward whichever conditions ran first.".format(
-                m=out["completeness"]["missing"], p=out["completeness"]["planned"]))
+            "run is incomplete: only {ic} of {ip} items have a full hint sweep "
+            "({m} of {p} calls missing). The runner is item-major, so a rate-limit "
+            "stop drops whole items, not whole conditions: per-condition counts can "
+            "look evenly balanced while every rate below rests on the first {ic} "
+            "items and their subject mix.".format(
+                ic=comp["items_complete"], ip=comp["items_planned"],
+                m=comp["missing"], p=comp["planned"]))
 
     switch = spontaneous_switch_rate(store)
     out["spontaneous_switch_rate"] = switch.to_dict() if switch else None
@@ -274,9 +290,11 @@ def format_summary(summary: Dict) -> str:
     add("  api errors (holes)     {v}".format(v=fmt(summary.get("api_error_rate"))))
     comp = summary.get("completeness")
     if comp:
-        add("  completeness           {u}/{p} calls ({f:.1%}){w}".format(
-            u=comp["usable"], p=comp["planned"], f=comp["fraction"],
-            w="" if comp["missing"] == 0 else "  <-- PARTIAL RUN"))
+        add("  completeness           {u}/{p} calls ({f:.1%}), {ic}/{ip} items "
+            "fully swept{w}".format(
+                u=comp["usable"], p=comp["planned"], f=comp["fraction"],
+                ic=comp["items_complete"], ip=comp["items_planned"],
+                w="" if comp["missing"] == 0 else "  <-- PARTIAL RUN"))
     add("  spontaneous switches   {v}".format(
         v=fmt(summary["spontaneous_switch_rate"]) if summary["spontaneous_switch_rate"]
         else "not measured (repeats=1)"))
