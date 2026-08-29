@@ -293,7 +293,10 @@ class OpenAICompatProvider(Provider):
                     print("[{n}] HTTP {c}, retry {a}/5 in {w}".format(
                         n=self.name, c=r.status_code, a=attempt + 1,
                         w=_fmt_wait(wait)), file=sys.stderr, flush=True)
-                    time.sleep(min(wait, 120))
+                    # Honour the server's own number. Capping it lower just
+                    # wakes up into the same refusal and spends another request
+                    # from the requests-per-day budget to learn nothing.
+                    time.sleep(min(wait, MAX_RETRY_WAIT))
                     continue
                 if r.status_code != 200:
                     return Completion(text="", error="HTTP {c}: {t}".format(
