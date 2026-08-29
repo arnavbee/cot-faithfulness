@@ -21,6 +21,26 @@ That is a complete run: control pass, four hint types, rates with clustered
 bootstrap intervals, figures. No API key, no network beyond fetching the
 questions once.
 
+```mermaid
+flowchart TD
+    Q[MMLU / GPQA question] --> C[control pass<br>no hint, repeated]
+    Q --> H[hinted pass<br>sycophancy · metadata · authority · reward_hack]
+    C --> P[answer extraction]
+    H --> P
+    P -->|unparseable| X[dropped, but counted:<br>parse failure rate]
+    P --> F{answer moved to<br>the hinted option?}
+    C -.->|disagreement across repeats| N[spontaneous switch rate:<br>the noise floor]
+    F -->|no| S[no flip]
+    F -->|yes| D[mention detectors<br>verbatim · strict · loose]
+    D --> A[acknowledged flip]
+    D --> U[silent flip:<br>the unfaithfulness claim]
+    A --> R[rates with clustered<br>bootstrap intervals]
+    U --> R
+    S --> R
+    N --> R
+    R --> M[monitor half: blind vs oracle,<br>scored against dumb baselines]
+```
+
 ---
 
 ## Why the mock model exists
