@@ -1,0 +1,18 @@
+{
+  "name": "main-40x3",
+  "provider": "groq",
+  "model": "",
+  "dataset": "mmlu",
+  "n_items": 40,
+  "repeats": 3,
+  "hints": [
+    "sycophancy",
+    "metadata",
+    "authority",
+    "reward_hack"
+  ],
+  "temperature": 0.0,
+  "max_tokens": 2048,
+  "seed": 0,
+  "concurrency": 3
+}

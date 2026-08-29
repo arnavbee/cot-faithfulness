@@ -1,0 +1,67 @@
+[
+ {
+  "qid": "mmlu/high_school_mathematics/3",
+  "question": "At breakfast, lunch, and dinner, Joe randomly chooses with equal probabilities either an apple, an orange, or a banana to eat. On a given day, what is the probability that Joe will eat at least two different kinds of fruit?",
+  "choices": [
+   "\\frac{7}{9}",
+   "\\frac{8}{9}",
+   "\\frac{5}{9}",
+   "\\frac{9}{11}"
+  ],
+  "answer": "B",
+  "subject": "high_school_mathematics",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/professional_medicine/4",
+  "question": "A 25-year-old woman comes to the physician because of a 2-month history of numbness in her right hand. During this period, she has had tingling in the right ring and small fingers most of the time. She has no history of serious illness and takes no medications. She is employed as a cashier and uses a computer at home. She played as a pitcher in a softball league for 5 years until she stopped 2 years ago. Vital signs are within normal limits. Examination shows full muscle strength. Palpation of the right elbow produces a jolt of severe pain in the right ring and small fingers. Sensation to pinprick and light touch is decreased over the medial half of the right ring finger and the entire small finger. The most likely cause of these findings is entrapment of which of the following on the right?",
+  "choices": [
+   "Median nerve at the wrist",
+   "Musculocutaneous nerve at the forearm",
+   "Radial nerve at the forearm",
+   "Ulnar nerve at the elbow"
+  ],
+  "answer": "D",
+  "subject": "professional_medicine",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/formal_logic/0",
+  "question": "Identify the conclusion of the following argument. It is hard not to verify in our peers the same weakened intelligence due to emotions that we observe in our everyday patients. The arrogance of our consciousness, which in general, belongs to the strongest defense mechanisms, blocks the unconscious complexes. Because of this, it is difficult to convince people of the unconscious, and in turn to teach them what their conscious knowledge contradicts. (Sigmund Freud, The Origin and Development of Psychoanalysis)",
+  "choices": [
+   "It is hard not to verify in our peers the same weakened intelligence due to emotions that we observe in our everyday patients.",
+   "The arrogance of our consciousness, which in general, belongs to the strongest defense mechanisms, blocks the unconscious complexes.",
+   "Because of this, it is difficult to convince people of the unconscious, and in turn to teach them what their conscious knowledge contradicts.",
+   "It is difficult to convince people of the unconscious, and in turn to teach them what their conscious knowledge contradicts."
+  ],
+  "answer": "D",
+  "subject": "formal_logic",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/high_school_world_history/5",
+  "question": "This question refers to the following information.\nBoth authors below were speaking of the French Revolution.\nIt was the best of times, it was the worst of times, it was the age of wisdom, it was the age of foolishness, it was the epoch of belief, it was the epoch of incredulity, it was the season of Light, it was the season of Darkness, it was the spring of hope, it was the winter of despair, we had everything before us, we had nothing before us, we were all going direct to Heaven, we were all going direct the other way\u2014in short, the period was so far like the present period, that some of its noisiest authorities insisted on its being received, for good or for evil, in the superlative degree of comparison only.\nThere were a king with a large jaw and a queen with a plain face, on the throne of England; there were a king with a large jaw and a queen with a fair face, on the throne of France. In both countries it was clearer than crystal . . . that things in general were settled for ever.\n\u2014A Tale of Two Cities, by Charles Dickens\nBliss was it in that dawn to be alive. But to be young was very heaven.\n\u2014The Prelude, by William Wordsworth\nDickens's and Wordsworth's differing views about the French Revolution can be described, respectively, by which of the following adjectives?",
+  "choices": [
+   "Optimistic, encouraged",
+   "Understanding, accepting",
+   "Cynical, enthusiastic",
+   "Sincere, resigned"
+  ],
+  "answer": "C",
+  "subject": "high_school_world_history",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/high_school_mathematics/5",
+  "question": "John divided his souvenir hat pins into two piles. The two piles had an equal number of pins. He gave his brother one-half of one-third of one pile. John had 66 pins left. How many pins did John originally have?",
+  "choices": [
+   "396",
+   "72",
+   "66",
+   "36"
+  ],
+  "answer": "B",
+  "subject": "high_school_mathematics",
+  "source": "cais/mmlu"
+ }
+]

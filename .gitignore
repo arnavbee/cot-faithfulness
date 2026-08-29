@@ -1,8 +1,10 @@
 .venv/
 __pycache__/
 *.pyc
-runs/
 data/
 figures/
 labels/
 .pytest_cache/
+
+# Raw run data is committed on purpose: the transcripts are the evidence,
+# and they cost tokens that cannot be re-bought.
