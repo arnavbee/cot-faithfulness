@@ -26,7 +26,7 @@ from typing import Dict, Iterable, List, Optional
 from .dataset import Item
 from .detect import extract_answer
 from .hints import HINTS, build_prompt, pick_target
-from .providers import Provider, get_provider
+from .providers import DAILY_LIMIT_ERROR, Provider, get_provider
 
 RUNS_DIR = Path(__file__).resolve().parent.parent / "runs"
 
@@ -150,6 +150,7 @@ def _run_batch(provider: Provider, cfg: RunConfig, store: ResponseStore,
 
     completed = 0
     errors = 0
+    stopped = False
     with ThreadPoolExecutor(max_workers=max(1, cfg.concurrency)) as pool:
         futures = {pool.submit(_call, provider, cfg, *job): job for job in pending}
         for fut in as_completed(futures):
@@ -158,9 +159,24 @@ def _run_batch(provider: Provider, cfg: RunConfig, store: ResponseStore,
             completed += 1
             if resp.error:
                 errors += 1
+            # A day cap will not clear inside this run. Cancel the rest rather
+            # than writing hundreds of errored holes and spending the
+            # requests-per-day budget discovering the same refusal each time.
+            if resp.error and DAILY_LIMIT_ERROR in resp.error and not stopped:
+                stopped = True
+                for pend in futures:
+                    pend.cancel()
             if completed % 10 == 0 or completed == len(pending):
                 print("[{l}] {c}/{t} ({e} errors)".format(
                     l=label, c=completed, t=len(pending), e=errors), file=sys.stderr)
+
+    if stopped:
+        remaining = len(pending) - completed
+        print("[{l}] STOPPED on the provider daily limit. {d} done, {r} left. "
+              "Nothing is lost: errored records are not cached, so rerunning "
+              "the same command once the budget resets resumes here.".format(
+                  l=label, d=completed - errors, r=remaining + errors),
+              file=sys.stderr)
 
 
 def control_answer(store: ResponseStore, qid: str) -> Optional[str]:

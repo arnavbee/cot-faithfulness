@@ -20,6 +20,7 @@ import json
 import os
 import random
 import re
+import sys
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -178,6 +179,35 @@ def _mock_acknowledgement(prompt: str, letter: Optional[str]) -> str:
     return template.format(h=letter or "A")
 
 
+DAILY_LIMIT_ERROR = "RATE_LIMIT_DAILY"
+
+# Longer than this and retrying is pointless: it is a per-day cap, not a
+# per-minute one, and every doomed retry still spends a request from the
+# separate requests-per-day budget.
+MAX_RETRY_WAIT = 300.0
+
+BODY_WAIT_RE = re.compile(r"try again in ([0-9hms.]+)", re.IGNORECASE)
+
+
+def _body_wait(text: str) -> float:
+    """Seconds from the 'Please try again in 6h37m31.15s' inside a 429 body.
+
+    The reset headers describe the per-minute window only. On a per-day refusal
+    they report well under a second while the real wait is hours, so the body is
+    the only honest source.
+    """
+    m = BODY_WAIT_RE.search(text or "")
+    return _parse_wait(m.group(1)) if m else 0.0
+
+
+def _fmt_wait(seconds: float) -> str:
+    if seconds < 90:
+        return "{s:.0f}s".format(s=seconds)
+    if seconds < 5400:
+        return "{m:.0f}m".format(m=seconds / 60)
+    return "{h:.1f}h".format(h=seconds / 3600)
+
+
 def _parse_wait(value: str) -> float:
     """Seconds from a retry-after header, plain or Groq's '1m26.4s' shape."""
     value = value.strip()
@@ -249,8 +279,21 @@ class OpenAICompatProvider(Provider):
                         r.headers.get("x-ratelimit-reset-tokens")
                     if hinted:
                         wait = max(wait, _parse_wait(hinted))
-                    time.sleep(min(wait, 120))
+                    wait = max(wait, _body_wait(r.text))
                     last_err = "HTTP {c}: {t}".format(c=r.status_code, t=r.text[:200])
+                    if wait > MAX_RETRY_WAIT:
+                        # A day cap. Sleeping it off would idle for hours and
+                        # retrying it would burn the requests-per-day budget on
+                        # calls that cannot succeed, so stop and say why.
+                        print("[{n}] daily limit reached, {w} to reset: {e}".format(
+                            n=self.name, w=_fmt_wait(wait), e=last_err),
+                            file=sys.stderr, flush=True)
+                        return Completion(text="", error="{m}: {e}".format(
+                            m=DAILY_LIMIT_ERROR, e=last_err))
+                    print("[{n}] HTTP {c}, retry {a}/5 in {w}".format(
+                        n=self.name, c=r.status_code, a=attempt + 1,
+                        w=_fmt_wait(wait)), file=sys.stderr, flush=True)
+                    time.sleep(min(wait, 120))
                     continue
                 if r.status_code != 200:
                     return Completion(text="", error="HTTP {c}: {t}".format(
