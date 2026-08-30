@@ -19,7 +19,8 @@ from pathlib import Path
 from . import dataset, labeling, monitors, plots, score
 from .hints import HINTS
 from .providers import REGISTRY, ProviderError, get_provider
-from .runner import RUNS_DIR, RunConfig, load_run, run as run_experiment
+from .runner import (RUNS_DIR, DailyLimitReached, RunConfig, load_run,
+                     run as run_experiment)
 
 
 def _summary_path(name: str) -> Path:
@@ -55,7 +56,17 @@ def cmd_run(args) -> int:
     items = dataset.load(cfg.dataset, cfg.n_items, seed=cfg.seed)
     print("loaded {n} items from {d}".format(n=len(items), d=cfg.dataset),
           file=sys.stderr)
-    run_experiment(cfg, items)
+    try:
+        run_experiment(cfg, items)
+    except DailyLimitReached as exc:
+        # Score what did land anyway: a partial summary with honest coverage is
+        # more useful than nothing, and score.summarise already reports holes.
+        print("run incomplete, {e}".format(e=exc), file=sys.stderr)
+        cmd_score(argparse.Namespace(name=args.name, detector=args.detector,
+                                     json=False))
+        print("resume with the same command once the budget rolls over.",
+              file=sys.stderr)
+        return 3
     return cmd_score(argparse.Namespace(name=args.name, detector=args.detector,
                                         json=False))
 

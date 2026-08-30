@@ -18,7 +18,7 @@ import sys
 import threading
 import time
 from collections import Counter, defaultdict
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import CancelledError, ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, asdict, field
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional
@@ -29,6 +29,15 @@ from .hints import HINTS, build_prompt, pick_target
 from .providers import DAILY_LIMIT_ERROR, Provider, get_provider
 
 RUNS_DIR = Path(__file__).resolve().parent.parent / "runs"
+
+
+class DailyLimitReached(RuntimeError):
+    """The provider's per-day budget is gone until it resets.
+
+    Raised rather than returned so a caller cannot mistake a truncated run for a
+    finished one. The CLI catches it and exits non-zero with the resume command,
+    which is what a scheduler needs in order to not relaunch into the same wall.
+    """
 
 
 @dataclass
@@ -150,11 +159,20 @@ def _run_batch(provider: Provider, cfg: RunConfig, store: ResponseStore,
 
     completed = 0
     errors = 0
+    cancelled = 0
     stopped = False
     with ThreadPoolExecutor(max_workers=max(1, cfg.concurrency)) as pool:
         futures = {pool.submit(_call, provider, cfg, *job): job for job in pending}
         for fut in as_completed(futures):
-            resp = fut.result()
+            try:
+                resp = fut.result()
+            except CancelledError:
+                # We cancelled these ourselves on the daily limit below. Asking
+                # a cancelled future for its result re-raises, which used to
+                # take the whole process down with a traceback the moment the
+                # stop worked as designed.
+                cancelled += 1
+                continue
             store.add(resp)
             completed += 1
             if resp.error:
@@ -177,6 +195,9 @@ def _run_batch(provider: Provider, cfg: RunConfig, store: ResponseStore,
               "the same command once the budget resets resumes here.".format(
                   l=label, d=completed - errors, r=remaining + errors),
               file=sys.stderr)
+        raise DailyLimitReached(
+            "{l}: {d} done, {r} left".format(
+                l=label, d=completed - errors, r=remaining + errors))
 
 
 def control_answer(store: ResponseStore, qid: str) -> Optional[str]:

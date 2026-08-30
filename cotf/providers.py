@@ -21,6 +21,7 @@ import os
 import random
 import re
 import sys
+import threading
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -181,12 +182,81 @@ def _mock_acknowledgement(prompt: str, letter: Optional[str]) -> str:
 
 DAILY_LIMIT_ERROR = "RATE_LIMIT_DAILY"
 
-# Longer than this and retrying is pointless: it is a per-day cap, not a
-# per-minute one, and every doomed retry still spends a request from the
-# separate requests-per-day budget.
-MAX_RETRY_WAIT = 300.0
+# How long a refusal is worth sleeping off in place.
+#
+# The first version of this was 300s, on the theory that anything longer had to
+# be a day cap worth abandoning. That was wrong about Groq, and it cost the main
+# run three hundred restarts. Groq's tokens-per-day is a ROLLING 24h window, not
+# a midnight reset: spend ages out continuously and the body tells you exactly
+# when enough has aged out, which during a stall is typically ten to twenty
+# minutes. Abandoning a fifteen-minute wait is strictly worse than sleeping it,
+# because the restart re-spends requests rediscovering the same wall.
+#
+# Beyond this the wait really is a fresh-day problem and the run should stop and
+# say so rather than idle for hours holding a process open.
+MAX_RETRY_WAIT = 2700.0     # 45 minutes
+
+
+class TokenBucket:
+    """Paces outgoing calls against a tokens-per-minute ceiling.
+
+    Groq's free tier allows 8,000 tokens per minute. At the ~640 tokens this
+    experiment averages, that is twelve calls a minute, and four worker threads
+    clear twelve calls in under ten seconds. Every burst past the ceiling buys a
+    429 and a retry, so the day's token budget gets spent on refusals instead of
+    answers: the stalled run logged 151 dead rows for 342 good ones.
+
+    Reserving budget BEFORE the request goes out keeps the run inside the
+    ceiling by construction, which is cheaper than discovering it afterwards.
+    The reservation is an estimate, so settle() reconciles it against the usage
+    the server actually reports and keeps the estimate honest for later calls.
+    """
+
+    def __init__(self, per_minute: float, estimate: float = 700.0):
+        self.capacity = float(per_minute)
+        self.rate = self.capacity / 60.0
+        self.estimate = float(estimate)
+        self._tokens = self.capacity
+        self._stamp = time.monotonic()
+        self._seen = 0
+        self._lock = threading.Lock()
+
+    def take(self) -> float:
+        """Block until the reservation fits under the ceiling. Returns it."""
+        want = min(max(self.estimate, 1.0), self.capacity)
+        while True:
+            with self._lock:
+                now = time.monotonic()
+                self._tokens = min(self.capacity,
+                                   self._tokens + (now - self._stamp) * self.rate)
+                self._stamp = now
+                if self._tokens >= want:
+                    self._tokens -= want
+                    return want
+                wait = (want - self._tokens) / self.rate
+            time.sleep(min(wait, 5.0))
+
+    def settle(self, reserved: float, actual: float) -> None:
+        """Charge the difference and fold the real cost into the estimate."""
+        if actual <= 0:
+            return
+        with self._lock:
+            self._tokens = max(-self.capacity, self._tokens - (actual - reserved))
+            self._seen += 1
+            # A plain running mean: early calls should not be able to drag the
+            # estimate somewhere a long run cannot pull it back from.
+            self.estimate += (actual - self.estimate) / min(self._seen, 50)
 
 BODY_WAIT_RE = re.compile(r"try again in ([0-9hms.]+)", re.IGNORECASE)
+
+DAILY_RE = re.compile(r"per day|\bTPD\b|\bRPD\b", re.IGNORECASE)
+
+RETRIES = 5
+
+
+def _is_daily(text: str) -> bool:
+    """Whether a 429 body blames the per-day budget rather than per-minute."""
+    return bool(DAILY_RE.search(text or ""))
 
 
 def _body_wait(text: str) -> float:
@@ -227,7 +297,8 @@ class OpenAICompatProvider(Provider):
     def __init__(self, name: str, base_url: str, env_names: List[str],
                  secret_file: str, default_model: str,
                  extra_headers: Optional[Dict[str, str]] = None,
-                 reasoning_body: Optional[Dict[str, Any]] = None):
+                 reasoning_body: Optional[Dict[str, Any]] = None,
+                 tokens_per_minute: float = 0.0):
         self.name = name
         self.base_url = base_url.rstrip("/")
         self.env_names = env_names
@@ -235,6 +306,9 @@ class OpenAICompatProvider(Provider):
         self.default_model = default_model
         self.extra_headers = extra_headers or {}
         self.reasoning_body = reasoning_body or {}
+        # Free tiers publish a tokens-per-minute ceiling. Where we know it, pace
+        # to it instead of finding it by getting refused.
+        self.bucket = TokenBucket(tokens_per_minute) if tokens_per_minute else None
 
     def _key(self) -> str:
         key = _read_key(self.env_names, self.secret_file)
@@ -267,7 +341,11 @@ class OpenAICompatProvider(Provider):
         headers.update(self.extra_headers)
 
         last_err = None
-        for attempt in range(5):
+        attempt = 0
+        # Waiting out a rolling day window does not mean the request is failing,
+        # so those rounds must not consume the retry allowance for real faults.
+        while attempt < RETRIES:
+            reserved = self.bucket.take() if self.bucket else 0.0
             try:
                 r = requests.post(self.base_url + "/chat/completions",
                                   headers=headers, json=body, timeout=180)
@@ -281,18 +359,27 @@ class OpenAICompatProvider(Provider):
                         wait = max(wait, _parse_wait(hinted))
                     wait = max(wait, _body_wait(r.text))
                     last_err = "HTTP {c}: {t}".format(c=r.status_code, t=r.text[:200])
+                    daily = _is_daily(r.text)
                     if wait > MAX_RETRY_WAIT:
-                        # A day cap. Sleeping it off would idle for hours and
-                        # retrying it would burn the requests-per-day budget on
-                        # calls that cannot succeed, so stop and say why.
+                        # A whole fresh day away. Sleeping it off would hold the
+                        # process open for hours and retrying it would burn the
+                        # requests-per-day budget on calls that cannot succeed.
                         print("[{n}] daily limit reached, {w} to reset: {e}".format(
                             n=self.name, w=_fmt_wait(wait), e=last_err),
                             file=sys.stderr, flush=True)
                         return Completion(text="", error="{m}: {e}".format(
                             m=DAILY_LIMIT_ERROR, e=last_err))
-                    print("[{n}] HTTP {c}, retry {a}/5 in {w}".format(
-                        n=self.name, c=r.status_code, a=attempt + 1,
-                        w=_fmt_wait(wait)), file=sys.stderr, flush=True)
+                    if daily:
+                        # A rolling day window, close enough to sleep. This is
+                        # not a failed attempt, it is the queue doing its job.
+                        print("[{n}] day window full, waiting {w} for it to "
+                              "roll".format(n=self.name, w=_fmt_wait(wait)),
+                              file=sys.stderr, flush=True)
+                    else:
+                        attempt += 1
+                        print("[{n}] HTTP {c}, retry {a}/{r} in {w}".format(
+                            n=self.name, c=r.status_code, a=attempt, r=RETRIES,
+                            w=_fmt_wait(wait)), file=sys.stderr, flush=True)
                     # Honour the server's own number. Capping it lower just
                     # wakes up into the same refusal and spends another request
                     # from the requests-per-day budget to learn nothing.
@@ -302,15 +389,22 @@ class OpenAICompatProvider(Provider):
                     return Completion(text="", error="HTTP {c}: {t}".format(
                         c=r.status_code, t=r.text[:400]))
                 data = r.json()
+                usage = data.get("usage", {}) or {}
+                if self.bucket:
+                    self.bucket.settle(reserved, float(usage.get("total_tokens") or 0))
                 msg = data["choices"][0]["message"]
                 content = msg.get("content") or ""
                 reasoning = msg.get("reasoning") or msg.get("reasoning_content") or ""
                 if not reasoning:
                     content, reasoning = _split_think(content)
                 return Completion(text=content.strip(), reasoning=reasoning.strip(),
-                                  usage=data.get("usage", {}), raw=data)
+                                  usage=usage, raw=data)
             except requests.RequestException as exc:
+                attempt += 1
                 last_err = str(exc)
+                print("[{n}] connection error, retry {a}/{r}: {e}".format(
+                    n=self.name, a=attempt, r=RETRIES, e=str(exc)[:120]),
+                    file=sys.stderr, flush=True)
                 time.sleep(min(2 ** attempt, 30))
         return Completion(text="", error="retries exhausted: {e}".format(e=last_err))
 
@@ -373,7 +467,10 @@ REGISTRY = {
         "groq", "https://api.groq.com/openai/v1",
         ["GROQ_API_KEY"], "groq.key",
         "openai/gpt-oss-120b",
-        reasoning_body={"reasoning_format": "parsed"}),
+        reasoning_body={"reasoning_format": "parsed"},
+        # Published free-tier ceiling, confirmed live from
+        # x-ratelimit-limit-tokens on 2026-08-30.
+        tokens_per_minute=8000),
     "openrouter": lambda: OpenAICompatProvider(
         "openrouter", "https://openrouter.ai/api/v1",
         ["OPENROUTER_API_KEY"], "openrouter.key",
