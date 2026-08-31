@@ -3,6 +3,7 @@
     python -m cotf doctor
     python -m cotf run  pilot --provider mock --n 40 --repeats 3
     python -m cotf score pilot
+    python -m cotf cost  pilot
     python -m cotf monitor pilot
     python -m cotf plot pilot
     python -m cotf label pilot --n 30
@@ -16,7 +17,7 @@ import json
 import sys
 from pathlib import Path
 
-from . import dataset, labeling, monitors, plots, score
+from . import cost, dataset, labeling, monitors, plots, score
 from .hints import HINTS
 from .providers import REGISTRY, ProviderError, get_provider
 from .runner import (RUNS_DIR, DailyLimitReached, RunConfig, load_run,
@@ -80,6 +81,22 @@ def cmd_score(args) -> int:
     else:
         print(score.format_summary(summary))
         print("summary written to {p}".format(p=_summary_path(args.name)))
+    return 0
+
+
+def cmd_cost(args) -> int:
+    cfg, items, store = load_run(args.name)
+    model = cfg.model or get_provider(cfg.provider).default_model
+    price = cost.resolve_price(cfg, model, args.price_in, args.price_out)
+    rep = cost.report(cfg, items, store, price=price, detector=args.detector,
+                      model=model)
+    (RUNS_DIR / args.name / "cost.json").write_text(json.dumps(rep, indent=2))
+    if args.json:
+        print(json.dumps(rep, indent=2))
+    else:
+        print(cost.format_report(rep))
+        print("cost report written to {p}".format(
+            p=RUNS_DIR / args.name / "cost.json"))
     return 0
 
 
@@ -184,6 +201,17 @@ def build_parser() -> argparse.ArgumentParser:
                    choices=["strict", "loose", "verbatim"])
     s.add_argument("--json", action="store_true")
     s.set_defaults(func=cmd_score)
+
+    c = sub.add_parser("cost", help="tokens, dollars and latency for a run")
+    c.add_argument("name")
+    c.add_argument("--price-in", dest="price_in", type=float, default=None,
+                   help="USD per million input tokens (overrides the table)")
+    c.add_argument("--price-out", dest="price_out", type=float, default=None,
+                   help="USD per million output tokens (overrides the table)")
+    c.add_argument("--detector", default="strict",
+                   choices=["strict", "loose", "verbatim"])
+    c.add_argument("--json", action="store_true")
+    c.set_defaults(func=cmd_cost)
 
     m = sub.add_parser("monitor", help="CoT-only monitor vs dumb baselines")
     m.add_argument("name")

@@ -167,3 +167,58 @@ def bootstrap_f1(pred: Sequence[bool], truth: Sequence[bool],
     point = score_classifier(pred, truth).f1
     lo, hi = np.percentile(scores, [100 * alpha / 2, 100 * (1 - alpha / 2)])
     return (point, float(lo), float(hi))
+
+
+@dataclass
+class Mean:
+    """A mean with a cluster bootstrap interval.
+
+    Separate from Rate because a mean is not a proportion: it has no numerator,
+    and its interval has to come from resampling rather than a closed form.
+    """
+    n: int
+    point: float
+    lo: float
+    hi: float
+    method: str
+
+    def __str__(self) -> str:
+        if not self.n:
+            return "n/a (0 calls)"
+        return "{p:.4g} [{lo:.4g}, {hi:.4g}] (n={n})".format(
+            p=self.point, lo=self.lo, hi=self.hi, n=self.n)
+
+    def to_dict(self) -> Dict:
+        return {"point": self.point, "lo": self.lo, "hi": self.hi,
+                "n": self.n, "method": self.method}
+
+
+def bootstrap_mean(values: Sequence[float], clusters: Optional[Sequence[str]] = None,
+                   n_boot: int = 10000, alpha: float = 0.05,
+                   seed: int = 0) -> Mean:
+    """Percentile bootstrap of a mean, resampling CLUSTERS not observations.
+
+    Cost and latency are clustered by question for the same reason flip rates
+    are: one item contributes a control call plus one call per hint per repeat,
+    and those share a prompt length and a subject. Resampling calls would treat
+    them as independent and report an interval narrower than the data earns.
+    """
+    values = [float(v) for v in values]
+    n = len(values)
+    if n == 0:
+        return Mean(0, float("nan"), float("nan"), float("nan"), "bootstrap")
+    if clusters is None:
+        clusters = [str(i) for i in range(n)]
+
+    grouped: Dict[str, List[float]] = defaultdict(list)
+    for value, cluster in zip(values, clusters):
+        grouped[cluster].append(value)
+    keys = list(grouped)
+    sums = np.array([sum(grouped[key]) for key in keys], dtype=float)
+    counts = np.array([len(grouped[key]) for key in keys], dtype=float)
+
+    rng = np.random.default_rng(seed)
+    idx = rng.integers(0, len(keys), size=(n_boot, len(keys)))
+    boot = sums[idx].sum(axis=1) / counts[idx].sum(axis=1)
+    lo, hi = np.percentile(boot, [100 * alpha / 2, 100 * (1 - alpha / 2)])
+    return Mean(n, sum(values) / n, float(lo), float(hi), "bootstrap-cluster")

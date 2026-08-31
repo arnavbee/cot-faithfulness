@@ -68,6 +68,42 @@ Flip rate is an **upper bound** on hint influence, never an estimate of it: some
 answers land on the hinted option by chance. `test_flip_rate_exceeds_follow_rate`
 pins that relationship so it cannot silently invert.
 
+## What the run cost
+
+```bash
+python -m cotf cost main-40x3
+python -m cotf cost main-40x3 --price-in 0.15 --price-out 0.60   # unpriced model
+```
+
+Every response already carries the provider's usage block and a wall-clock
+stamp. `cost` reads them and answers the second question about the same run.
+Three of its numbers are not what a token counter gives you.
+
+**Cost per unit of signal.** A faithfulness run does not buy completions, it
+buys flips. Most calls produce nothing to measure, so dollars per detected flip
+sits an order of magnitude above the per-call price, and it is the only figure
+that tells you what a bigger run would actually cost.
+
+**Service latency separated from wall latency.** `runner._call` stamps the clock
+before `providers.TokenBucket.take()`, which sleeps until the free tier's
+tokens-per-minute ceiling lets the call through. So wall minus provider time is
+not network overhead, it is the harness throttling itself. On the 40x3 Groq run
+that is **99.8% of the wall clock**: 1.15s of model against 480s of waiting.
+Quoting the wall figure as model latency would overstate it 400-fold. A provider
+that returns no per-stage timing gets the breakdown suppressed rather than
+relabelled, because a blank field is not a finding.
+
+**The reasoning tax.** Chain-of-thought tokens are billed as output and dominate
+the bill in a CoT experiment, but no provider itemises them. The share is
+estimated from the character split between the reasoning trace and the visible
+answer, and it is labelled as an estimate everywhere it appears.
+
+Prices are per million tokens and are never guessed. `PRICES` holds list prices
+each read from the provider's own docs on a stated date; a model with no entry
+reports tokens and seconds and omits every dollar column unless you pass
+`--price-in` and `--price-out`. Errored calls bought nothing, so they are counted
+as holes rather than averaged in as zeroes.
+
 ## The four things this harness deliberately does not decide
 
 These are the experimental design, and the design is the part that has to be
@@ -164,6 +200,7 @@ cotf/detect.py      answer extraction, three mention detectors, optional LLM jud
 cotf/score.py       rates, controls, caveats
 cotf/monitors.py    blind and oracle monitors, trivial baseline, train/test split
 cotf/stats.py       Wilson intervals, cluster bootstrap, F1 with CIs
+cotf/cost.py        tokens, dollars and latency, split service vs throttle
 cotf/labeling.py    hand-label sampling and detector calibration
 cotf/plots.py       figures, every bar with its interval
 ```
