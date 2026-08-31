@@ -22,10 +22,18 @@ Three things it reports that a token counter does not:
     overstate the model by two orders of magnitude.
 
   - **The reasoning tax.** Chain-of-thought tokens are billed as output and are
-    the dominant cost driver in a CoT experiment, but no provider bills them
-    separately. The share is estimated from the character split between the
-    reasoning trace and the visible answer, which is an approximation and is
-    labelled as one everywhere it appears.
+    the dominant cost driver in a CoT experiment. Groq itemises them in
+    usage.completion_tokens_details.reasoning_tokens, so when the field is
+    present the report uses the BILLED count. When it is absent the share falls
+    back to the character split between the reasoning trace and the visible
+    answer, and the report says which of the two it used and on how many calls.
+    The two disagree: on the 428-call main run the character estimate said 91.2%
+    of output and the billed field says 88.8%.
+
+  - **What the failures cost.** An errored call buys no tokens, but it does
+    spend wall clock, and on a rate-limited free key most calls error. Excluding
+    them from the token averages is right; leaving them out of the report
+    entirely hides where the run's real time went.
 
 Prices are per million tokens and are NOT guessed. A model with no entry in
 PRICES reports tokens and seconds and leaves every dollar figure out, unless you
@@ -90,6 +98,7 @@ class Call:
     completion_time: float
     cot_chars: int
     text_chars: int
+    billed_reasoning_tokens: Optional[int] = None
 
     @property
     def total_tokens(self) -> int:
@@ -99,12 +108,24 @@ class Call:
     def reasoning_share(self) -> float:
         """Estimated fraction of completion tokens spent on the CoT.
 
-        Character-proportional, because the provider does not break the two out.
-        Good enough to rank conditions against each other; do not quote it as a
-        measured token count.
+        Character-proportional, and only used when the provider does not itemise
+        reasoning tokens. Good enough to rank conditions against each other; do
+        not quote it as a measured token count.
         """
         total = self.cot_chars + self.text_chars
         return self.cot_chars / total if total else 0.0
+
+    @property
+    def reasoning_tokens(self) -> float:
+        """Reasoning tokens: the billed count if the provider gave one.
+
+        Falling back to the estimate silently would let a run mix measured and
+        inferred numbers in one total with no way to tell them apart, so the
+        report also carries the count of calls that supplied the real field.
+        """
+        if self.billed_reasoning_tokens is not None:
+            return float(self.billed_reasoning_tokens)
+        return self.completion_tokens * self.reasoning_share
 
     @property
     def service(self) -> float:
@@ -167,8 +188,73 @@ def collect(store: ResponseStore) -> List[Call]:
             prompt_time=float(usage.get("prompt_time") or 0.0),
             completion_time=float(usage.get("completion_time") or 0.0),
             cot_chars=len(rec.get("cot") or ""),
-            text_chars=len(rec.get("text") or "")))
+            text_chars=len(rec.get("text") or ""),
+            billed_reasoning_tokens=_billed_reasoning(usage)))
     return calls
+
+
+def _billed_reasoning(usage: Dict) -> Optional[int]:
+    """The provider's own reasoning-token count, or None if it did not say.
+
+    None and 0 are different answers. A model that emitted no chain of thought
+    genuinely spent zero; a provider that omits the field has told us nothing,
+    and treating that as zero would erase the largest cost driver in the run.
+    """
+    details = usage.get("completion_tokens_details") or {}
+    value = details.get("reasoning_tokens")
+    return int(value) if value is not None else None
+
+
+def failures(store: ResponseStore) -> Dict:
+    """What the errored calls cost in wall clock, and why they failed.
+
+    Tokens are the wrong unit here: a 429 buys nothing. Seconds are the right
+    one. Read from store.attempts(), not store.all(), because the deduped view
+    replaces a failed attempt with the retry that succeeded and so reports zero
+    cost for the thing that actually consumed the afternoon. The seconds are
+    worker-seconds summed across concurrent calls, not elapsed clock.
+    """
+    kinds: Dict[str, Dict[str, float]] = defaultdict(
+        lambda: {"calls": 0, "wall_seconds": 0.0})
+    total_wall = 0.0
+    for rec in _attempts(store):
+        err = rec.get("error")
+        if not err:
+            continue
+        seconds = float(rec.get("latency") or 0.0)
+        total_wall += seconds
+        bucket = kinds[_error_kind(str(err))]
+        bucket["calls"] += 1
+        bucket["wall_seconds"] += seconds
+    rows = sorted(({"kind": k, **v} for k, v in kinds.items()),
+                  key=lambda r: r["wall_seconds"], reverse=True)
+    return {"calls": sum(int(r["calls"]) for r in rows),
+            "wall_seconds": total_wall, "by_kind": rows}
+
+
+def _attempts(store: ResponseStore) -> List[Dict]:
+    """Every attempt, or the deduped view if the store cannot offer more.
+
+    A store that only knows all() is not wrong, it just cannot see retries, and
+    the failure figures it produces are a floor rather than a total.
+    """
+    reader = getattr(store, "attempts", None)
+    return reader() if callable(reader) else store.all()
+
+
+def _error_kind(message: str) -> str:
+    """Collapse an error string to a class worth counting.
+
+    The raw messages carry per-request detail (hosts, reset timers, request
+    ids), so counting them verbatim produces one bucket per call and no
+    taxonomy at all.
+    """
+    head = message.split(":", 1)[0].strip()
+    if "RATE_LIMIT" in message or "429" in message:
+        return "rate limit (daily)" if "DAILY" in message else "rate limit"
+    if "retries exhausted" in message:
+        return "retries exhausted"
+    return head[:40] or "unknown"
 
 
 def _pct(values: Sequence[float], q: float) -> float:
@@ -243,7 +329,10 @@ def report(cfg: RunConfig, items: List[Item], store: ResponseStore,
     completion = sum(c.completion_tokens for c in calls)
     prompt = sum(c.prompt_tokens for c in calls)
     gen_seconds = sum(c.completion_time for c in calls)
-    reasoning_tokens = sum(c.completion_tokens * c.reasoning_share for c in calls)
+    reasoning_tokens = sum(c.reasoning_tokens for c in calls)
+    billed = [c for c in calls if c.billed_reasoning_tokens is not None]
+    fail = failures(store)
+    wall_total = sum(float(r.get("latency") or 0.0) for r in _attempts(store))
 
     out: Dict = {
         "run": cfg.name,
@@ -286,11 +375,23 @@ def report(cfg: RunConfig, items: List[Item], store: ResponseStore,
                                    else float("nan")),
         "output_tokens_per_second": (completion / gen_seconds) if gen_seconds else float("nan"),
         "reasoning_tax": {
-            "estimated_reasoning_tokens": int(round(reasoning_tokens)),
+            "reasoning_tokens": int(round(reasoning_tokens)),
             "share_of_completion": (reasoning_tokens / completion) if completion else float("nan"),
-            "estimated_cost_usd": ((reasoning_tokens * price.out / MILLION)
-                                   if price else float("nan")),
-            "note": "character-proportional estimate, not a billed figure",
+            "cost_usd": ((reasoning_tokens * price.out / MILLION)
+                         if price else float("nan")),
+            "billed_calls": len(billed),
+            "source": ("billed by the provider" if len(billed) == len(calls)
+                       else "character-proportional estimate"
+                       if not billed else
+                       "mixed: {b} of {n} calls billed, rest estimated".format(
+                           b=len(billed), n=len(calls))),
+        },
+        "failures": fail,
+        "wall_seconds": {
+            "succeeded": wall_total - fail["wall_seconds"],
+            "failed": fail["wall_seconds"],
+            "total": wall_total,
+            "failed_share": (fail["wall_seconds"] / wall_total) if wall_total else float("nan"),
         },
         "by_condition": _condition_rows(calls, price),
     }
@@ -384,10 +485,28 @@ def format_report(rep: Dict) -> str:
 
     rt = rep["reasoning_tax"]
     add("")
-    add("REASONING TAX ({n})".format(n=rt["note"]))
-    add("  est. reasoning tokens  {t:,} ({s:.1%} of output)".format(
-        t=rt["estimated_reasoning_tokens"], s=rt["share_of_completion"]))
-    add("  est. cost of thinking  {v}".format(v=usd(rt["estimated_cost_usd"], 4)))
+    add("REASONING TAX ({n})".format(n=rt["source"]))
+    add("  reasoning tokens       {t:,} ({s:.1%} of output)".format(
+        t=rt["reasoning_tokens"], s=rt["share_of_completion"]))
+    add("  cost of thinking       {v}".format(v=usd(rt["cost_usd"], 4)))
+
+    fail = rep.get("failures") or {}
+    ws = rep.get("wall_seconds") or {}
+    if fail.get("calls"):
+        add("")
+        add("WHAT THE FAILURES COST")
+        add("  failed attempts        {n:,}  (bought no tokens; retries counted)".format(
+            n=fail["calls"]))
+        add("  worker time burned     {h:,.1f}h of {t:,.1f}h ({s:.1%})".format(
+            h=fail["wall_seconds"] / 3600.0, t=ws.get("total", 0.0) / 3600.0,
+            s=ws.get("failed_share", float("nan"))))
+        for row in fail["by_kind"]:
+            add("    {k:<22} {n:>6,} calls  {h:>7,.1f}h".format(
+                k=row["kind"], n=int(row["calls"]),
+                h=row["wall_seconds"] / 3600.0))
+        add("  NOTE: these are worker-hours summed across concurrent calls, not")
+        add("        elapsed time. Dollars measure the successful calls; hours")
+        add("        measure the run. A cheap run that takes a day still blocks.")
 
     add("")
     add("BY CONDITION")

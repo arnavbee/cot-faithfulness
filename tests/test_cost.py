@@ -2,7 +2,8 @@ import math
 
 import pytest
 
-from cotf.cost import PRICES, Call, Price, collect, format_report, resolve_price
+from cotf.cost import (PRICES, Call, Price, collect, failures, format_report,
+                       resolve_price)
 from cotf.runner import RunConfig
 from cotf.stats import bootstrap_mean
 
@@ -124,3 +125,92 @@ def test_missing_provider_timing_is_not_reported_as_throttle():
     """
     assert _call(queue_time=0.0, prompt_time=0.0, completion_time=0.0).has_timing is False
     assert _call().has_timing is True
+
+
+class FakeAttemptStore(FakeStore):
+    """A store that can see retries, like the real ResponseStore."""
+
+    def __init__(self, attempts, final=None):
+        super().__init__(final if final is not None else attempts)
+        self._attempts = attempts
+
+    def attempts(self):
+        return self._attempts
+
+
+def test_billed_reasoning_tokens_beat_the_character_estimate():
+    """Groq itemises reasoning tokens; the estimate is only for providers that don't."""
+    usage = {"prompt_tokens": 100, "completion_tokens": 200, "total_tokens": 300,
+             "queue_time": 0.2, "prompt_time": 0.05, "completion_time": 1.0,
+             "completion_tokens_details": {"reasoning_tokens": 150}}
+    call = collect(FakeStore([_rec(usage=usage)]))[0]
+    assert call.billed_reasoning_tokens == 150
+    # The character split says 90%, i.e. 180 tokens. The billed field wins.
+    assert call.reasoning_share == pytest.approx(0.9)
+    assert call.reasoning_tokens == 150
+
+
+def test_reasoning_falls_back_to_the_estimate_when_unreported():
+    call = collect(FakeStore([_rec()]))[0]
+    assert call.billed_reasoning_tokens is None
+    assert call.reasoning_tokens == pytest.approx(180.0)
+
+
+def test_a_billed_zero_is_not_a_missing_field():
+    """A model that emitted no CoT spent zero. Silence means we do not know."""
+    usage = {"prompt_tokens": 10, "completion_tokens": 20, "total_tokens": 30,
+             "completion_tokens_details": {"reasoning_tokens": 0}}
+    call = collect(FakeStore([_rec(usage=usage)]))[0]
+    assert call.billed_reasoning_tokens == 0
+    assert call.reasoning_tokens == 0.0
+
+
+def test_failures_count_retries_not_just_the_final_record():
+    """all() replaces a failed attempt with the retry that succeeded.
+
+    Costing off that view reports zero for the hours the failures actually took.
+    """
+    attempts = [_rec(error="RATE_LIMIT_DAILY: HTTP 429: ...", latency=30.0, usage={}),
+                _rec(error="retries exhausted: HTTPSConnectionPool(...)",
+                     latency=20.0, usage={}),
+                _rec(latency=2.0)]
+    fail = failures(FakeAttemptStore(attempts, final=[attempts[-1]]))
+    assert fail["calls"] == 2
+    assert fail["wall_seconds"] == pytest.approx(50.0)
+    kinds = {row["kind"]: row["wall_seconds"] for row in fail["by_kind"]}
+    assert kinds == {"rate limit (daily)": 30.0, "retries exhausted": 20.0}
+
+
+def test_failures_degrade_to_the_deduped_view_without_attempts():
+    """A store that cannot see retries yields a floor, not a crash."""
+    fail = failures(FakeStore([_rec(error="boom", latency=5.0, usage={}), _rec()]))
+    assert fail["calls"] == 1
+    assert fail["wall_seconds"] == pytest.approx(5.0)
+
+
+def test_error_kinds_collapse_per_request_detail():
+    """Raw messages carry hosts and reset timers; counting them verbatim gives
+    one bucket per call and no taxonomy."""
+    attempts = [
+        _rec(error="RATE_LIMIT_DAILY: HTTP 429: reset in 3h", latency=1.0, usage={}),
+        _rec(error="RATE_LIMIT_DAILY: HTTP 429: reset in 5h", latency=1.0, usage={}),
+        _rec(error="retries exhausted: HTTPSConnectionPool(host='a')", latency=1.0, usage={}),
+        _rec(error="retries exhausted: HTTPSConnectionPool(host='b')", latency=1.0, usage={}),
+    ]
+    fail = failures(FakeAttemptStore(attempts))
+    assert {row["kind"]: int(row["calls"]) for row in fail["by_kind"]} == {
+        "rate limit (daily)": 2, "retries exhausted": 2}
+
+
+def test_real_store_attempts_sees_what_all_hides(tmp_path):
+    """Integration guard: the two views of the same file must differ on retries."""
+    from cotf.runner import ResponseStore
+
+    path = tmp_path / "responses.jsonl"
+    path.write_text(
+        '{"key": "k1", "error": "RATE_LIMIT_DAILY: 429", "latency": 30.0}\n'
+        '{"key": "k1", "error": null, "latency": 2.0, "usage": {"total_tokens": 5}}\n')
+    store = ResponseStore(path)
+    assert len(store.all()) == 1
+    assert len(store.attempts()) == 2
+    assert failures(store)["wall_seconds"] == pytest.approx(30.0)

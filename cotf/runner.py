@@ -116,7 +116,28 @@ class ResponseStore:
                 fh.write(json.dumps(resp.to_dict()) + "\n")
 
     def all(self) -> List[Dict]:
+        """The final record per key: what the run produced."""
         return list(self.by_key.values())
+
+    def attempts(self) -> List[Dict]:
+        """Every record ever written, retries included, in file order.
+
+        all() keeps one record per key, so a call that failed twice and then
+        succeeded appears once, as a success. That is the right view for scoring
+        and the wrong one for asking what the run cost: it silently deletes the
+        failed attempts, which are exactly where the hours went.
+        """
+        records: List[Dict] = []
+        if not self.path.exists():
+            return records
+        for line in self.path.read_text().splitlines():
+            if not line.strip():
+                continue
+            try:
+                records.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue
+        return records
 
 
 def _call(provider: Provider, cfg: RunConfig, item: Item, condition: str,
