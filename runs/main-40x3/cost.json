@@ -8,67 +8,67 @@
     "output": 0.6,
     "source": "console.groq.com/docs/models, read 2026-08-31"
   },
-  "calls": 429,
-  "errored_calls": 76,
+  "calls": 600,
+  "errored_calls": 0,
   "tokens": {
-    "prompt": 103012,
-    "completion": 167419,
-    "total": 270431
+    "prompt": 150750,
+    "completion": 231718,
+    "total": 382468
   },
-  "cost_usd": 0.1159032,
+  "cost_usd": 0.1616433,
   "cost_per_call_usd": {
-    "point": 0.00027017062937062937,
-    "lo": 0.00021910784291698398,
-    "hi": 0.0003358928365563223,
-    "n": 429,
+    "point": 0.00026940549999999997,
+    "lo": 0.00022765463124999998,
+    "hi": 0.00032149243124999995,
+    "n": 600,
     "method": "bootstrap-cluster"
   },
   "tokens_per_call": {
-    "point": 630.3752913752913,
-    "lo": 544.87938727644,
-    "hi": 738.3732069117953,
-    "n": 429,
+    "point": 637.4466666666667,
+    "lo": 565.853125,
+    "hi": 722.3079999999999,
+    "n": 600,
     "method": "bootstrap-cluster"
   },
   "service_latency": {
-    "mean": 1.148567602065268,
-    "p50": 0.974778449,
-    "p95": 2.242681779799996,
+    "mean": 1.153941247465,
+    "p50": 0.988015848,
+    "p95": 2.4504146295499996,
     "mean_ci": {
-      "point": 1.148567602065268,
-      "lo": 0.9680124473509695,
-      "hi": 1.3802216569485675,
-      "n": 429,
+      "point": 1.153941247465,
+      "lo": 1.0058374417309583,
+      "hi": 1.3363424084960418,
+      "n": 600,
       "method": "bootstrap-cluster"
     }
   },
   "wall_latency": {
-    "mean": 482.0331398601399,
-    "p50": 5.486,
-    "p95": 2925.9332
+    "mean": 573.4405216666667,
+    "p50": 6.8735,
+    "p95": 2960.2538499999982
   },
   "latency_breakdown": {
-    "queue": 0.31662090194172493,
-    "prompt": 0.0161022734965035,
-    "completion": 0.8158444266270397,
-    "throttle_wait": 480.8845722580746
+    "queue": 0.32430104842333335,
+    "prompt": 0.019145326983333336,
+    "completion": 0.8104948720583334,
+    "throttle_wait": 572.2865804192016
   },
   "provider_timing": {
-    "calls": 429,
+    "calls": 600,
     "available": true
   },
-  "throttle_share_of_wall": 0.9976172434899424,
-  "output_tokens_per_second": 478.343746083446,
+  "throttle_share_of_wall": 0.9979876879922764,
+  "output_tokens_per_second": 476.494892171102,
   "reasoning_tax": {
-    "reasoning_tokens": 148665,
-    "share_of_completion": 0.8879816508281617,
-    "cost_usd": 0.089199,
-    "billed_calls": 429,
+    "reasoning_tokens": 201800,
+    "share_of_completion": 0.8708861633537317,
+    "cost_usd": 0.12108,
+    "billed_calls": 600,
     "source": "billed by the provider"
   },
   "failures": {
-    "calls": 1670,
-    "wall_seconds": 44172.576000000015,
+    "calls": 1676,
+    "wall_seconds": 44654.65300000001,
     "by_kind": [
       {
         "kind": "retries exhausted",
@@ -82,28 +82,50 @@
       },
       {
         "kind": "rate limit",
-        "calls": 6,
-        "wall_seconds": 275.236
+        "calls": 12,
+        "wall_seconds": 757.313
       }
     ]
   },
   "wall_seconds": {
-    "succeeded": 206792.217,
-    "failed": 44172.576000000015,
-    "total": 250964.793,
-    "failed_share": 0.17601104709535897
+    "succeeded": 347616.329,
+    "failed": 44654.65300000001,
+    "total": 392270.982,
+    "failed_share": 0.11383623833791512
   },
   "by_condition": [
     {
       "condition": "authority",
-      "calls": 78,
-      "prompt_tokens": 18402,
-      "completion_tokens": 48726,
-      "mean_completion_tokens": 624.6923076923077,
-      "mean_service_latency": 1.6405710244615384,
-      "p95_service_latency": 4.595680264199999,
-      "cost_usd": 0.0319959,
-      "share_of_spend": 0.2760570890191125
+      "calls": 120,
+      "prompt_tokens": 30006,
+      "completion_tokens": 68511,
+      "mean_completion_tokens": 570.925,
+      "mean_service_latency": 1.5466719563166669,
+      "p95_service_latency": 3.172875909549998,
+      "cost_usd": 0.0456075,
+      "share_of_spend": 0.2821490281378814
+    },
+    {
+      "condition": "sycophancy",
+      "calls": 120,
+      "prompt_tokens": 30606,
+      "completion_tokens": 48844,
+      "mean_completion_tokens": 407.03333333333336,
+      "mean_service_latency": 1.1889724346333332,
+      "p95_service_latency": 2.1708162296499998,
+      "cost_usd": 0.0338973,
+      "share_of_spend": 0.2097043304609594
+    },
+    {
+      "condition": "reward_hack",
+      "calls": 120,
+      "prompt_tokens": 30246,
+      "completion_tokens": 42144,
+      "mean_completion_tokens": 351.2,
+      "mean_service_latency": 1.08612460275,
+      "p95_service_latency": 1.8968880821999998,
+      "cost_usd": 0.0298233,
+      "share_of_spend": 0.18450068762515986
     },
     {
       "condition": "control",
@@ -114,47 +136,25 @@
       "mean_service_latency": 0.9733080226166667,
       "p95_service_latency": 1.8489201407999993,
       "cost_usd": 0.0261909,
-      "share_of_spend": 0.22597219058662746
-    },
-    {
-      "condition": "sycophancy",
-      "calls": 79,
-      "prompt_tokens": 19234,
-      "completion_tokens": 33566,
-      "mean_completion_tokens": 424.88607594936707,
-      "mean_service_latency": 1.2152439121012657,
-      "p95_service_latency": 1.9230135268999986,
-      "cost_usd": 0.0230247,
-      "share_of_spend": 0.19865456691445965
-    },
-    {
-      "condition": "reward_hack",
-      "calls": 76,
-      "prompt_tokens": 18292,
-      "completion_tokens": 26221,
-      "mean_completion_tokens": 345.0131578947368,
-      "mean_service_latency": 1.05409175125,
-      "p95_service_latency": 1.719560592,
-      "cost_usd": 0.0184764,
-      "share_of_spend": 0.1594123371917255
+      "share_of_spend": 0.16202898604519952
     },
     {
       "condition": "metadata",
-      "calls": 76,
-      "prompt_tokens": 19238,
-      "completion_tokens": 22216,
-      "mean_completion_tokens": 292.3157894736842,
-      "mean_service_latency": 0.9455099541184211,
-      "p95_service_latency": 1.8304105075000001,
-      "cost_usd": 0.0162153,
-      "share_of_spend": 0.13990381628807486
+      "calls": 120,
+      "prompt_tokens": 32046,
+      "completion_tokens": 35529,
+      "mean_completion_tokens": 296.075,
+      "mean_service_latency": 0.9746292210083334,
+      "p95_service_latency": 1.8837017445,
+      "cost_usd": 0.0261243,
+      "share_of_spend": 0.16161696773079987
     }
   ],
   "signal": {
-    "flips": 28,
+    "flips": 44,
     "unfaithful_flips": 0,
-    "total_cost_usd": 0.1159032,
-    "cost_per_flip_usd": 0.0041394,
+    "total_cost_usd": 0.1616433,
+    "cost_per_flip_usd": 0.0036737113636363633,
     "cost_per_unfaithful_flip_usd": null,
     "detector": "strict"
   }
