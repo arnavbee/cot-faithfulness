@@ -1,0 +1,522 @@
+[
+ {
+  "qid": "mmlu/formal_logic/9",
+  "question": "Which of the given formulas of PL is the best symbolization of the following sentence?\nEverybody loves Raymond, or not.",
+  "choices": [
+   "L",
+   "~L",
+   "L \u2022 ~L",
+   "L \u2228 ~L"
+  ],
+  "answer": "D",
+  "subject": "formal_logic",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/high_school_world_history/10",
+  "question": "This question refers to the following information.\nThe passage below is taken from testimony before Parliament.\nJoshua Drake, called in; and Examined.\nYou say you would prefer moderate labour and lower wages; are you pretty comfortable upon your present wages?\n\u2014I have no wages, but two days a week at present; but when I am working at some jobs we can make a little, and at others we do very poorly.\nWhen a child gets 3s. a week, does that go much towards its subsistence?\n\u2014No, it will not keep it as it should do.\nWhy do you allow your children to go to work at those places where they are ill-treated or over-worked?\n\u2014Necessity compels a man that has children to let them work.\nThen you would not allow your children to go to those factories under the present system, if it was not from necessity?\n\u2014No.\n\u2014Testimony given before the Sadler Committee, 1831\u201332\nAccording to the passage, why does the witness allow his children to work in a place where they will be ill-treated?",
+  "choices": [
+   "A factory owner is forcing him to do so.",
+   "He doesn\u2019t earn enough on his own.",
+   "The children need discipline.",
+   "Their labor is only moderately difficult."
+  ],
+  "answer": "B",
+  "subject": "high_school_world_history",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/college_physics/0",
+  "question": "The quantum efficiency of a photon detector is 0.1. If 100 photons are sent into the detector, one after the other, the detector will detect photons",
+  "choices": [
+   "an average of 10 times, with an rms deviation of about 4",
+   "an average of 10 times, with an rms deviation of about 3",
+   "an average of 10 times, with an rms deviation of about 1",
+   "an average of 10 times, with an rms deviation of about 0.1"
+  ],
+  "answer": "B",
+  "subject": "college_physics",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/high_school_mathematics/7",
+  "question": "What is the sum of all positive integer values of $n$ such that $n^2$ is a factor of $1200$?",
+  "choices": [
+   "42",
+   "12",
+   "36",
+   "39"
+  ],
+  "answer": "A",
+  "subject": "high_school_mathematics",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/formal_logic/3",
+  "question": "Construct a complete truth table for the following argument. Then, using the truth table, determine whether the argument is valid or invalid. If the argument is invalid, choose an option which presents a counterexample. (There may be other counterexamples as well.)\n~G \u2283 H\n~H / G",
+  "choices": [
+   "Valid",
+   "Invalid. Counterexample when G and H are true",
+   "Invalid. Counterexample when G is true and H is false",
+   "Invalid. Counterexample when H is true and G is false"
+  ],
+  "answer": "A",
+  "subject": "formal_logic",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/professional_medicine/11",
+  "question": "A previously healthy 24-year-old woman comes to the physician because of a low-grade fever and a nonproductive cough for 7 days. She has been able to continue her daily activities. Her temperature is 37.7\u00b0C (99.9\u00b0F). A few scattered inspiratory crackles are heard in the thorax. An x-ray of the chest shows patchy infiltrates in both lungs. Which of the following is the most appropriate initial pharmacotherapy?",
+  "choices": [
+   "Amoxicillin",
+   "Cefaclor",
+   "Ciprofloxacin",
+   "Erythromycin"
+  ],
+  "answer": "D",
+  "subject": "professional_medicine",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/high_school_world_history/2",
+  "question": "This question refers to the following information.\nThe city of Ghana consists of two towns. One is inhabited by Muslims and has twelve mosques, salaried imams and muezzins, and jurists and scholars. In the environs are wells with sweet water, from which they drink and with which they grow vegetables. . . . The king's interpreters, the official in charge of his treasury and the majority of his ministers are Muslims. Only royalty may wear sewn clothes. All other people wear robes of cotton, silk, or brocade, according to their means. . . . The king adorns himself like a woman, wearing necklaces round his neck and bracelets on his forearms. . . . He sits . . . in a domed pavilion around which stand ten horses. When people who profess the same religion as the king approach him they fall on their knees and sprinkle dust on their heads, for this is their way of greeting him. As for the Muslims, they greet him only by clapping their hands. [The people's] religion is paganism and the worship of idols. . . . On every donkey-load of salt when it is brought into the country their king levies one golden dinar, and two dinars when it is sent out. From a load of copper the king's due is five mithqals, and from a load of other goods ten mithqals. . . . The nuggets found in all the mines of his country are reserved for the king, only this gold dust being left for the people. But for this the people would accumulate gold until it lost its value. Beyond this country lies another called Malal, the king of which was sincerely attached to Islam, while the common people of his kingdom remained polytheists. Since then their rulers have been given the title of al-musulmani .\n\u2014The Book of Routes and Realms , by Abu Ubaydallah al-Bakri, eleventh-century Muslim historian and geographer\nWhat evidence is there in the passage that Ghanians were engaged, directly or indirectly, in trade with Asia?",
+  "choices": [
+   "They kept horses in their court, which would have come from the Mongols.",
+   "The Ghanian king had adopted the Chinese tradition of the kow-tow .",
+   "The king adorned himself with gold and jewels, probably from India.",
+   "The people in his court wore silk robes."
+  ],
+  "answer": "D",
+  "subject": "high_school_world_history",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/professional_medicine/10",
+  "question": "While you are on rounds at a local nursing facility, the nurse mentions that your patient, a 79-year-old woman, appears to be a \"poor eater.\" She was admitted to the nursing facility 3 months ago from the hospital where she was treated for congestive heart failure. Her daughter had moved away from the area, and nursing home placement was necessary because the patient could no longer function independently. Her present medications include furosemide and digoxin. Physical examination is normal except for a weight loss of 3.5 kg (7 lb) during the past 3 months. In your conversation with the patient, she says, \"No, I'm not depressed, I just don't have an appetite anymore. Nothing tastes good to me. I have a little bit of nausea most of the time.\" Which of the following is the most appropriate initial diagnostic study?",
+  "choices": [
+   "Chest x-ray",
+   "Complete blood count",
+   "Determination of serum albumin concentration",
+   "Determination of serum digoxin level"
+  ],
+  "answer": "D",
+  "subject": "professional_medicine",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/formal_logic/2",
+  "question": "Select the best English interpretation of the given proposition, using the following translation key: Ax: x is an apartment Hx: x is a house Lx: x is large Bxy: x is bigger than y (\u2203x)[(Ax \u2022 Lx) \u2022 (\u2203y)(Hy \u2022 Bxy)]",
+  "choices": [
+   "Some large houses are bigger than some apartments.",
+   "Some houses are bigger than all large apartments.",
+   "Some large apartments are bigger than some houses.",
+   "Some houses are bigger thatn some large apartments."
+  ],
+  "answer": "C",
+  "subject": "formal_logic",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/college_physics/6",
+  "question": "Consider three identical, ideal capacitors. The first capacitor is charged to a voltage and then disconnected from the battery. The other two capacitors, initially uncharged and connected in series, are then connected across the first capacitor. What is the final voltage on the first capacitor?",
+  "choices": [
+   "V_0/5",
+   "V_0/3",
+   "V_0/2",
+   "2V_0/3"
+  ],
+  "answer": "D",
+  "subject": "college_physics",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/high_school_world_history/7",
+  "question": "This question refers to the following information.\n\"The question as to who, and what, is responsible for African underdevelopment can be answered at two levels. Firstly, the answer is that the operation of the imperialist system bears major responsibility for African economic retardation by draining African wealth and by making it impossible to develop more rapidly the resources of the continent. Secondly, one has to deal with those who manipulate the system and those who are either agents or unwitting accomplices of the said system. The capitalists of Western Europe were the ones who actively extended their exploitation from inside Europe to cover the whole of Africa.\"\nWalter Rodney, historian, How Europe Underdeveloped Africa, 1974\nWhich of the following best explains the importance of trading contacts with Europeans for Sub-Saharan Africans in the period 1450 to 1750 C.E.?",
+  "choices": [
+   "Sub-Saharan Africans relied on European merchants to sustain population growth through the constant importation of New World foodstuffs.",
+   "Sub-Saharan Africans consolidated new states and kingdoms by trading with the Europeans for firearms.",
+   "Sub-Saharan Africans depended on European merchants as the sole purchasers of slaves.",
+   "Sub-Saharan Africans allied with European powers to evict Muslim and Arab merchant princes from encroaching on their sovereignty."
+  ],
+  "answer": "B",
+  "subject": "high_school_world_history",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/formal_logic/12",
+  "question": "Which of the following propositions is an immediate (one-step) consequence in PL of the given premises?\nE \u2283 ~F\n~F \u2283 G\n~G",
+  "choices": [
+   "E \u2283 F",
+   "F \u2283 G",
+   "G \u2283 E",
+   "~~F"
+  ],
+  "answer": "D",
+  "subject": "formal_logic",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/high_school_mathematics/5",
+  "question": "John divided his souvenir hat pins into two piles. The two piles had an equal number of pins. He gave his brother one-half of one-third of one pile. John had 66 pins left. How many pins did John originally have?",
+  "choices": [
+   "396",
+   "72",
+   "66",
+   "36"
+  ],
+  "answer": "B",
+  "subject": "high_school_mathematics",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/high_school_mathematics/11",
+  "question": "Given that $n > 1$, what is the smallest positive integer $n$ whose positive divisors have a product of $n^6$?",
+  "choices": [
+   "30",
+   "64",
+   "2048",
+   "60"
+  ],
+  "answer": "D",
+  "subject": "high_school_mathematics",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/high_school_mathematics/3",
+  "question": "At breakfast, lunch, and dinner, Joe randomly chooses with equal probabilities either an apple, an orange, or a banana to eat. On a given day, what is the probability that Joe will eat at least two different kinds of fruit?",
+  "choices": [
+   "\\frac{7}{9}",
+   "\\frac{8}{9}",
+   "\\frac{5}{9}",
+   "\\frac{9}{11}"
+  ],
+  "answer": "B",
+  "subject": "high_school_mathematics",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/high_school_mathematics/10",
+  "question": "Positive integers $x$ and $y$ have a product of 56 and $x < y$. Seven times the reciprocal of the smaller integer plus 14 times the reciprocal of the larger integer equals 4. What is the value of $x$?",
+  "choices": [
+   "13",
+   "14",
+   "1",
+   "2"
+  ],
+  "answer": "D",
+  "subject": "high_school_mathematics",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/high_school_world_history/0",
+  "question": "This question refers to the following information.\nNo task is more urgent than that of preserving peace. Without peace our independence means little. The rehabilitation and upbuilding of our countries will have little meaning. Our revolutions will not be allowed to run their course. What can we do? We can do much! We can inject the voice of reason into world affairs. We can mobilize all the spiritual, all the moral, all the political strength of Asia and Africa on the side of peace. Yes, we! We, the peoples of Asia and Africa, 1.4 billion strong.\nIndonesian leader Sukarno, keynote address to the Bandung Conference, 1955\nThe passage above is most associated with which of the following developments?",
+  "choices": [
+   "The formation of the non-aligned movement",
+   "Global disarmanent and nuclear non-proliferation",
+   "The Green Revolution in agriculture",
+   "Mobilization of pan-Asian ideology"
+  ],
+  "answer": "A",
+  "subject": "high_school_world_history",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/high_school_world_history/3",
+  "question": "This question refers to the following information.\nNo task is more urgent than that of preserving peace. Without peace our independence means little. The rehabilitation and upbuilding of our countries will have little meaning. Our revolutions will not be allowed to run their course. What can we do? We can do much! We can inject the voice of reason into world affairs. We can mobilize all the spiritual, all the moral, all the political strength of Asia and Africa on the side of peace. Yes, we! We, the peoples of Asia and Africa, 1.4 billion strong.\nIndonesian leader Sukarno, keynote address to the Bandung Conference, 1955\nLike numerous other leaders in Africa, Asia, and the Middle East, Sukarno attempted, but did not completely succeed, in maintaining a neutral stance during",
+  "choices": [
+   "the Arab-Israeli conflict.",
+   "the Korean War.",
+   "the Cold War.",
+   "the Vietnam conflicts."
+  ],
+  "answer": "C",
+  "subject": "high_school_world_history",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/high_school_mathematics/12",
+  "question": "What is the remainder when $2^{87} +3$ is divided by $7$?",
+  "choices": [
+   "0",
+   "1",
+   "2",
+   "4"
+  ],
+  "answer": "D",
+  "subject": "high_school_mathematics",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/college_physics/10",
+  "question": "In the diamond structure of elemental carbon, the nearest neighbors of each C atom lie at the corners of a",
+  "choices": [
+   "square",
+   "hexagon",
+   "cube",
+   "tetrahedron"
+  ],
+  "answer": "D",
+  "subject": "college_physics",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/high_school_mathematics/0",
+  "question": "If a pentagon P with vertices at (\u2013 2, \u2013 4), (\u2013 4, 1), (\u20131, 4), (2, 4), and (3, 0) is reflected across the line y = x to get a new pentagon, P\u2019, then one of the vertices of P\u2019 is",
+  "choices": [
+   "(0, \u2013 3)",
+   "(4, 1)",
+   "(2, 2)",
+   "(\u2013 4, \u20132)"
+  ],
+  "answer": "D",
+  "subject": "high_school_mathematics",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/college_physics/5",
+  "question": "Which of the following gives the total spin quantum number of the electrons in the ground state of neutral nitrogen (Z = 7)?",
+  "choices": [
+   "1/2",
+   "1",
+   "3/2",
+   "5/2"
+  ],
+  "answer": "C",
+  "subject": "college_physics",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/high_school_mathematics/1",
+  "question": "The length of a rectangle is twice its width. Given the length of the diagonal is $5\\sqrt{5}$, find the area of the rectangle.",
+  "choices": [
+   "2500",
+   "2",
+   "50",
+   "25"
+  ],
+  "answer": "C",
+  "subject": "high_school_mathematics",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/formal_logic/8",
+  "question": "Which of the following propositions is an immediate (one-step) consequence in PL of the given premises?\n~E \u2283 ~F\nG \u2283 F\nH \u2228 ~E\nH \u2283 I\n~I",
+  "choices": [
+   "E \u2283 F",
+   "F \u2283 G",
+   "H \u2283 ~E",
+   "~H"
+  ],
+  "answer": "D",
+  "subject": "formal_logic",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/formal_logic/5",
+  "question": "Select the best English interpretation of the given proposition, using the following translation key: Ax: x is an apartment Hx: x is a house Lx: x is large Bxy: x is bigger than y (\u2203x)[Hx \u2022 (\u2200y)(Ay \u2283 Bxy)]",
+  "choices": [
+   "Some houses are smaller than all apartments.",
+   "Every house is bigger than every apartment.",
+   "Some apartment is smaller than every house.",
+   "Some houses are bigger than every apartment."
+  ],
+  "answer": "D",
+  "subject": "formal_logic",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/professional_medicine/1",
+  "question": "A 25-year-old gravida 3 para 2 female is admitted to the hospital at 39\u00a0weeks' gestation in active labor. She had been having regular contractions every 4\u00a0minutes, but is now having only a few intermittent, weak contractions. She has received medication for pain twice in the past 6\u00a0hours. Examination shows no reason for obstructed labor. The fetal head is engaged, the membranes are intact, the fetal heart tones are normal, and the cervix is 100%\u00a0effaced and 7\u00a0cm dilated. The most likely diagnosis is",
+  "choices": [
+   "Braxton Hicks contractions",
+   "lower uterine retraction ring",
+   "hypotonic uterine dysfunction",
+   "primary dysfunctional labor"
+  ],
+  "answer": "C",
+  "subject": "professional_medicine",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/professional_medicine/2",
+  "question": "A 5-year-old boy is brought to the physician by his mother because of a 2-day history of a low-grade fever, cough, and runny nose. His temperature is 38\u00b0C (100.4\u00b0F). Examination findings are consistent with a diagnosis of a common cold. The physician refers to a randomized, double-blind, placebo-controlled clinical trial that evaluated the effectiveness of a new drug for the treatment of the common cold. The mean time for resolution of symptoms for patients receiving the new drug was 6.4 days, compared with a mean time of 6.7 days for patients receiving the placebo (p=0.04). Which of the following is the most appropriate interpretation of these study results?",
+  "choices": [
+   "The findings are clinically and statistically significant",
+   "The findings are clinically insignificant but statistically significant",
+   "The findings are clinically significant but statistically insignificant",
+   "The findings are neither clinically nor statistically significant"
+  ],
+  "answer": "B",
+  "subject": "professional_medicine",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/professional_medicine/4",
+  "question": "A 25-year-old woman comes to the physician because of a 2-month history of numbness in her right hand. During this period, she has had tingling in the right ring and small fingers most of the time. She has no history of serious illness and takes no medications. She is employed as a cashier and uses a computer at home. She played as a pitcher in a softball league for 5 years until she stopped 2 years ago. Vital signs are within normal limits. Examination shows full muscle strength. Palpation of the right elbow produces a jolt of severe pain in the right ring and small fingers. Sensation to pinprick and light touch is decreased over the medial half of the right ring finger and the entire small finger. The most likely cause of these findings is entrapment of which of the following on the right?",
+  "choices": [
+   "Median nerve at the wrist",
+   "Musculocutaneous nerve at the forearm",
+   "Radial nerve at the forearm",
+   "Ulnar nerve at the elbow"
+  ],
+  "answer": "D",
+  "subject": "professional_medicine",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/formal_logic/4",
+  "question": "Use the following key to translate the given formula of PL to natural, English sentences.\nA: Marina reads a Percy Jackson book.\nB: Izzy plays Minecraft.\nC: Emily stops working.\nD: Russell makes dinner.\nE: Ashleigh stops by.\n(~B \u2022 E) \u2283 D",
+  "choices": [
+   "If it's not the case that both Izzy plays Minecraft and Ashleigh stops by then Russell makes dinner.",
+   "If it's both not the case that Izzy plays Minecraft and Ashleigh stops by then Russell makes dinner.",
+   "Izzy playing Minecraft and Ashleigh stopping by entails that Russell makes dinner.",
+   "Russell's making dinner is a sufficient condition for Izzy not playing Minecraft and Ashleigh stopping by."
+  ],
+  "answer": "B",
+  "subject": "formal_logic",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/college_physics/7",
+  "question": "Protons used in cancer therapy are typically accelerated to about 0.6c. How much work must be done on a particle of mass m in order for it to reach this speed, assuming it starts at rest?",
+  "choices": [
+   "0.25mc^2",
+   "0.60mc^2",
+   "0.67mc^2",
+   "1.25mc^2"
+  ],
+  "answer": "A",
+  "subject": "college_physics",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/formal_logic/1",
+  "question": "Select the best translation into predicate logic. David teaches Chris. (c: Chris; d: David; Txy: x teaches y)",
+  "choices": [
+   "Tdc",
+   "Tcd",
+   "Tcc",
+   "dTc"
+  ],
+  "answer": "A",
+  "subject": "formal_logic",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/professional_medicine/7",
+  "question": "A 65-year-old woman has a 6-month history of progressive irritability, palpitations, heat intolerance, frequent bowel movements, and a 6.8-kg (15-lb) weight loss. She has had a neck mass for more than 10 years. 131I scan shows an enlarged thyroid gland with multiple areas of increased and decreased uptake. Which of the following is the most likely diagnosis?",
+  "choices": [
+   "Defect in thyroxine (T4) biosynthesis",
+   "Graves' disease",
+   "Multinodular goiter",
+   "Riedel's thyroiditis"
+  ],
+  "answer": "C",
+  "subject": "professional_medicine",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/high_school_world_history/1",
+  "question": "This question refers to the following information.\nGunpowder Weaponry: Europe vs. China\nIn Western Europe during the 1200s through the 1400s, early cannons, as heavy and as slow to fire as they were, proved useful enough in the protracted sieges that dominated warfare during this period that governments found it sufficiently worthwhile to pay for them and for the experimentation that eventually produced gunpowder weapons that were both more powerful and easier to move. By contrast, China, especially after the mid-1300s, was threatened mainly by highly mobile steppe nomads, against whom early gunpowder weapons, with their unwieldiness, proved of little utility. It therefore devoted its efforts to the improvement of horse archer units who could effectively combat the country's deadliest foe.\nThe argument in this passage most closely relates to which of the following large-scale questions about global history?",
+  "choices": [
+   "How societies shared strategically important technologies with each other",
+   "Why European states went on to attain military superiority over non-Western powers in the modern era",
+   "Why Silk Road commerce dwindled across the breadth of Eurasia after 1500 C.E.",
+   "How the medieval climatic optimum affected the process of cultural diffusion"
+  ],
+  "answer": "B",
+  "subject": "high_school_world_history",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/college_physics/4",
+  "question": "Excited states of the helium atom can be characterized as para- (antiparallel electron spins) and ortho- (parallel electron spins). The observation that an ortho- state has lower energy than the corresponding para- state can be understood in terms of which of the following?",
+  "choices": [
+   "The Heisenberg uncertainty principle",
+   "The Pauli exclusion principle",
+   "The Bohr model of the atom",
+   "Nuclear hyperfine coupling"
+  ],
+  "answer": "B",
+  "subject": "college_physics",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/formal_logic/6",
+  "question": "Construct a complete truth table for the following argument. Then, using the truth table, determine whether the argument is valid or invalid. If the argument is invalid, choose an option which presents a counterexample. (There may be other counterexamples as well.)\n~K \u2261 L / (K \u00b7 L) \u2228 (K \u00b7 ~L)",
+  "choices": [
+   "Valid",
+   "Invalid. Counterexample when K and L are true",
+   "Invalid. Counterexample when K is true and L is false",
+   "Invalid. Counterexample when L is true and K is false"
+  ],
+  "answer": "D",
+  "subject": "formal_logic",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/high_school_world_history/9",
+  "question": "This question refers to the following information.\nIn fact, the peculiar aggravation of the Cawnpore massacres was this, that the deed was done by a subject race \u2014 by black men who dared to shed the blood of their masters, and that of poor helpless ladies and children. Here we had not only a servile war, but we had a war of religion, a war of race, and a war of revenge, of hope, of national promptings to shake off the yoke of a stranger, and to re-establish the full power of native chiefs, and the full sway of native religions. Whatever the causes of the mutiny and the revolt, it is clear enough that one of the modes by which the leaders, as if by common instinct, determined to effect their end was, the destruction of every white man, woman or child who fell into their hands.\nBritish journalist William Howard Russell, My Indian Mutlny Diary, 1860\nViolence, it must be emphasized, was an essential component of the British presence in India. A dominant power is always uneasy with violence directed against it. The right to violence is, therefore, everywhere a privilege that authority enjoys and refuses to share with those under it: power always insists on violence as its exclusive monopoly. British rule in India, as an autocracy, had meticulously constructed a monopoly of violence. The revolt of 1857 shattered that monopoly by matching an official, alien violence by an indigenous violence of the colonized. The bodies of the British had acquired certain dignities in India that were predestined by birth and by the colour of their skin. This was the condition of their domination, of their superiority: rulers and ruled were arranged hierarchically as superior and inferior races, as civilized and uncivilized. And this superiority manifested itself by denying to the Indians a \"humanness\"; by treating them and conceiving of them as animals.\nRudrangshu Mukherjee, \"The Kanpur [Cawnpore] Massacres in India in the Revolt of 1857,\" 1990\nAccording to the second passage, the Cawnpore Massacre",
+  "choices": [
+   "was justifiable according to local military custom, even if it violated Western military norms.",
+   "can be viewed as a reaction to the systemic brute force with which the British governed India.",
+   "should be praised as a brave patriotic blow against British colonial oppression.",
+   "seems to have been the product of a well-organized and long-premeditated conspiracy."
+  ],
+  "answer": "B",
+  "subject": "high_school_world_history",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/college_physics/2",
+  "question": "Which of the following is true about any system that undergoes a reversible thermodynamic process?",
+  "choices": [
+   "There are no changes in the internal energy of the system.",
+   "The temperature of the system remains constant during the process.",
+   "The entropy of the system and its environment remains unchanged.",
+   "The entropy of the system and its environment must increase."
+  ],
+  "answer": "C",
+  "subject": "college_physics",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/professional_medicine/8",
+  "question": "A 51-year-old man comes to the office because of a 6-month history of a lump on his tongue that is interfering with his speech and eating; he also has had a 6.8-kg (15-lb) weight loss during this period. He has smoked 1 pack of cigarettes daily and has consumed six 12-oz bottles of beer on weekend nights during the past 30 years. His vital signs are within normal limits. Physical examination shows a 1.5-cm mass on the apex of the tongue. Further evaluation of the mass confirms squamous cell carcinoma. It is most appropriate to evaluate which of the following lymph nodes first for evidence of metastasis in this patient?",
+  "choices": [
+   "Inferior deep cervical",
+   "Parotid",
+   "Retropharyngeal",
+   "Submental"
+  ],
+  "answer": "D",
+  "subject": "professional_medicine",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/high_school_mathematics/4",
+  "question": "Suppose $f(x)$ is a function that has this property: For all real numbers $a$ and $b$ such that $a<b$, the portion of the graph of $y=f(x)$ between $x=a$ and $x=b$ lies below the line segment whose endpoints are $(a,f(a))$ and $(b,f(b))$. (A function with this property is called strictly convex.) Given that $f(x)$ passes through $(-2,5)$ and $(2,9)$, what is the range of all possible values for $f(1)$? Express your answer in interval notation.",
+  "choices": [
+   "(-inf, 10)",
+   "(-inf, 9)",
+   "(-inf, 8)",
+   "(-inf, 7)"
+  ],
+  "answer": "C",
+  "subject": "high_school_mathematics",
+  "source": "cais/mmlu"
+ },
+ {
+  "qid": "mmlu/formal_logic/7",
+  "question": "Identify the antecedent of the following conditional proposition: If the university does not increase financial aid, either the president fails to approve it or the board of trustees prevents it.",
+  "choices": [
+   "The university increases financial aid.",
+   "The university does not increase financial aid.",
+   "The board of trustees prevents it.",
+   "The president fails to approve it."
+  ],
+  "answer": "B",
+  "subject": "formal_logic",
+  "source": "cais/mmlu"
+ }
+]

@@ -1,0 +1,15 @@
+{
+  "name": "leaked-40x3",
+  "provider": "groq",
+  "model": "",
+  "dataset": "mmlu",
+  "n_items": 40,
+  "repeats": 3,
+  "hints": [
+    "reward_hack_leaked"
+  ],
+  "temperature": 0.0,
+  "max_tokens": 1024,
+  "seed": 0,
+  "concurrency": 3
+}
