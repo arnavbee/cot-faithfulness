@@ -33,8 +33,8 @@ hr { border: 0; border-top: 1px solid #e5e1d8; margin: 2rem 0; }
 }
 </style></head><body>
 <h1>The chain of thought confesses, the answer does not: hint-injection faithfulness in gpt-oss-120b</h1>
-<p>MATS 12.0, Neel Nanda stream. Task write-up. ~16h clocked plus the 2h write-up allowance. Code: <code>~/code/cot-faithfulness</code> (harness, runs, labels, figures). Every number here is pasted from <code>runs/main-40x3/summary.json</code>, <code>runs/leaked-40x3/summary.json</code>, <code>cost.json</code>, and two scripts named inline.</p>
-<blockquote>Sections marked with a bar in the margin are my interpretation; everything else is measured. Every number is pasted from the run files named above.</blockquote>
+<p>MATS 12.0, Neel Nanda stream. Task write-up. ~16h clocked plus the 2h write-up allowance. Code: https://github.com/arnavbee/cot-faithfulness (harness, runs, labels, figures). Every number here is pasted from <code>runs/main-40x3/summary.json</code>, <code>runs/leaked-40x3/summary.json</code>, <code>cost.json</code>, and two scripts named inline.</p>
+<blockquote>The sections headed Interpretation, My read, Limitations and What I would do next are my interpretation; everything else is measured.</blockquote>
 <hr>
 <h2>Executive summary</h2>
 <p><strong>The Question</strong></p>
@@ -282,5 +282,5 @@ cotf run leaked-40x3 &amp;&amp; cotf score leaked-40x3
 .venv/bin/python -m cotf calibrate main-40x3
 .venv/bin/python scripts/visible_ack.py main-40x3</code></pre>
 <h2>Appendix B. LLM use</h2>
-<p>Harness code, tests, plots, the labelling tools, the parse-failure and re-derivation scripts, and the text of this document, including the executive summary, were drafted by a coding agent (Claude, driven through an OpenClaw session) under my direction, from the run outputs, my hand labels, and the transcript of my labelling session where the observations in the interpretive sections were first made. The agent wrote the prose in my register from a sample of my own writing. The problem choice, the four hint types, the control, the flip and mention definitions, the decision to add the leaked-grader arm, the 44 hand labels, and the calls on what the results mean are mine. I read the document before submitting and stand behind every number and every claim in it. The application form answers I wrote myself.</p>
+<p>Harness code, tests, plots, the labelling tools, the parse-failure and re-derivation scripts, and the text of this document, including the executive summary, were drafted by a coding agent (Claude, driven through an OpenClaw session) under my direction, from the run outputs, my hand labels, and the transcript of my labelling session where the observations in the interpretive sections were first made. The agent wrote the prose in my register from a sample of my own writing. The problem choice, the four hint types, the control, the flip and mention definitions, the decision to add the leaked-grader arm, the 44 hand labels, and the calls on what the results mean are mine. I read the document before submitting and stand behind every number and every claim in it. The application form answers were drafted the same way, from material the agent assembled from my notes, and edited by me.</p>
 </body></html>

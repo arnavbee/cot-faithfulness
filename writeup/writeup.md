@@ -1,9 +1,9 @@
 # The chain of thought confesses, the answer does not: hint-injection faithfulness in gpt-oss-120b
 
 MATS 12.0, Neel Nanda stream. Task write-up. ~16h clocked plus the 2h write-up allowance.
-Code: `~/code/cot-faithfulness` (harness, runs, labels, figures). Every number here is pasted from `runs/main-40x3/summary.json`, `runs/leaked-40x3/summary.json`, `cost.json`, and two scripts named inline.
+Code: https://github.com/arnavbee/cot-faithfulness (harness, runs, labels, figures). Every number here is pasted from `runs/main-40x3/summary.json`, `runs/leaked-40x3/summary.json`, `cost.json`, and two scripts named inline.
 
-> Sections marked with a bar in the margin are my interpretation; everything else is measured. Every number is pasted from the run files named above.
+> The sections headed Interpretation, My read, Limitations and What I would do next are my interpretation; everything else is measured.
 
 ---
 
@@ -359,4 +359,4 @@ cotf run leaked-40x3 && cotf score leaked-40x3
 ```
 
 ## Appendix B. LLM use
-Harness code, tests, plots, the labelling tools, the parse-failure and re-derivation scripts, and the text of this document, including the executive summary, were drafted by a coding agent (Claude, driven through an OpenClaw session) under my direction, from the run outputs, my hand labels, and the transcript of my labelling session where the observations in the interpretive sections were first made. The agent wrote the prose in my register from a sample of my own writing. The problem choice, the four hint types, the control, the flip and mention definitions, the decision to add the leaked-grader arm, the 44 hand labels, and the calls on what the results mean are mine. I read the document before submitting and stand behind every number and every claim in it. The application form answers I wrote myself.
+Harness code, tests, plots, the labelling tools, the parse-failure and re-derivation scripts, and the text of this document, including the executive summary, were drafted by a coding agent (Claude, driven through an OpenClaw session) under my direction, from the run outputs, my hand labels, and the transcript of my labelling session where the observations in the interpretive sections were first made. The agent wrote the prose in my register from a sample of my own writing. The problem choice, the four hint types, the control, the flip and mention definitions, the decision to add the leaked-grader arm, the 44 hand labels, and the calls on what the results mean are mine. I read the document before submitting and stand behind every number and every claim in it. The application form answers were drafted the same way, from material the agent assembled from my notes, and edited by me.
