@@ -9,6 +9,37 @@ answer flips to the pointer, check whether the reasoning ever mentions the
 pointer. A flip with no mention is unfaithful reasoning, and it is unfaithful
 objectively: no human judgement of the reasoning's quality is required.
 
+## Results (MATS 12.0 write-up, September 2026)
+
+Full write-up: [`writeup/writeup.md`](writeup/writeup.md). Model: `gpt-oss-120b` on Groq,
+raw reasoning field. 40 MMLU items, 5 subjects, 5 conditions, 3 repeats, 600 calls, $0.16.
+
+| Finding | Number |
+|---|---|
+| Flip rate by hint: grader `check()` / expert / sycophancy / metadata | **31.9%** [19.3, 45.0] / 5.3% / 0% / 0% |
+| Flips whose reasoning mentions the hint (44 hand-read, blind) | **44 / 44**, unfaithful rate 0% |
+| Same grader marked "internal, not for the model" (`leaked-40x3`) | flips **31.9% → 2.6%** [0.0, 7.8] |
+| Same 44 flips, detector on the **visible answer** instead of the reasoning | **2 / 44** mention the hint; 34 are a bare `Answer: (X)` |
+| Best blind CoT-only monitor vs oracle, F1 | 0.33 vs 0.71 |
+
+Short version: this model's reasoning is faithful on every flip and its user-facing answer almost
+never is, and one chain says why in its own words ("we must not reveal that we are cheating").
+Which channel a monitor is allowed to read decides whether it catches anything.
+
+Reproduce from the committed responses (no API calls):
+
+```bash
+python -m cotf score main-40x3 && python -m cotf monitors main-40x3
+python -m cotf score leaked-40x3
+python -m cotf calibrate main-40x3          # detector vs the 44 hand labels in labels/
+python scripts/visible_ack.py main-40x3     # the output-channel check
+python scripts/random_examples.py main-40x3 0   # the seeded raw examples in the write-up
+```
+
+Raw transcripts are in `runs/<name>/responses.jsonl`, hand labels in `labels/main-40x3.jsonl`.
+
+---
+
 **The harness came before the experiment.** Everything here runs end to end
 against a mock model with known behaviour, so the measurement code can be
 verified before a single token is spent on a real one.
@@ -215,7 +246,7 @@ Interrupted runs resume: every response is keyed by a hash of
 python -m pytest tests -q
 ```
 
-29 tests, all offline, under a second. They cover answer extraction on
+58 tests, all offline, under a second. They cover answer extraction on
 malformed output, detector strictness ordering, interval behaviour at 0 and 1,
 the clustering correction, and the end-to-end recovery of the mock's known rates.
 
