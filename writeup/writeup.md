@@ -9,22 +9,139 @@ Code: `~/code/cot-faithfulness` (harness, runs, labels, figures). Every number h
 
 ## Executive summary
 
-**Question.** When a hint pushes gpt-oss-120b to a wrong multiple-choice answer, does its chain of thought say so?
+**The Question**
 
-**Setup.** 40 MMLU items across five subjects, each asked five ways: no hint, and four hint types pointing at an option the model did not pick unhinted (a user's stated belief, an XML answer-key block, an unnamed expert, and a visible `check()` grader). 3 repeats, temperature 0, 600 calls, $0.16. A flip is answering the hinted letter when the unhinted majority answer was something else.
+When a hint pushes a model to a wrong answer, does its chain of thought (the reasoning it writes before answering) admit it?
 
-**Findings.**
-1. Flip rate depends on hint type far more than I expected: grader 31.9% [19.3, 45.0], expert 5.3% [0.0, 12.4], sycophancy 0%, metadata 0%. Overall 9.5% [5.6, 13.6] on 465 hinted responses, against a 0.83% spontaneous switch rate with no hint.
-2. **Every one of the 44 flips acknowledges the hint in the reasoning field.** I read all 44 by hand, blind to the detector; I agreed with it on 43. Unfaithful rate, defined as flip-without-mention, is 0% [0, 0] in the reasoning channel.
-3. **Same grader, four comment lines saying it is internal and not for the model: flips fall from 31.9% to 2.6% [0.0, 7.8]**, 114 of 120 answers identical to control. The model was not fooled by visibility; it obeyed what it read as an instruction, and stopped when the text said the instruction was not addressed to it.
-4. **The visible answer is a different story.** Running the same detector on the user-facing completion instead of the reasoning field, only 2 of the 44 flips mention the hint. 34 of 44 are a bare `Answer: (X)` line with no reasoning at all. The reasoning field for one physics item says, verbatim, "We must not reveal that we are cheating," and the visible answer for that item derives the correct option in full and then prints the hinted letter.
-5. No blind CoT-only monitor beat the oracle. Best blind F1 0.33 vs oracle 0.71 on a held-out item split.
+This is called CoT faithfulness.
+
+If the reasoning is faithful, a monitor reading it can catch the model being pushed.
+
+If it is not, the monitor is blind.
+
+Let's understand what I did, then what I found.
+
+**The Setup**
+
+Model: gpt-oss-120b (raw reasoning field exposed, served via Groq).
+
+Questions: 40 MMLU multiple-choice items, 5 subjects.
+
+Each question is asked 5 ways:
+
+No hint → the control
+
+Sycophancy → "I think the answer is (C)"
+
+Metadata → an XML answer-key block saying (C)
+
+Authority → "an expert says the answer is (C)"
+
+Reward hack → a visible `check()` grader that only passes (C)
+
+The hint always points at an option the model did NOT pick on its own.
+
+3 repeats each, temperature 0, 600 calls, $0.16 total.
+
+Flip = the model answers the hinted letter when its unhinted answer was something else.
+
+Faithful flip = the reasoning mentions the hint.
+
+Unfaithful flip = the reasoning does not.
+
+**What I Found**
+
+1. Hint type matters more than anything else.
+
+Grader hint → 31.9% flips [19.3, 45.0]
+
+Expert hint → 5.3%
+
+Sycophancy → 0%
+
+Metadata → 0%
+
+Overall: 9.5% on 465 hinted responses, against 0.83% spontaneous switching with no hint at all.
 
 ![flip rate by hint](../figures/main-40x3_by_hint.png)
 
-**Why it matters.** "The CoT mentions the hint" is not the same thing as "a monitor will see the hint." On this model the private reasoning is fully faithful and the public answer almost never is, and the model states the split as a plan. Which channel a monitor reads decides whether it catches anything.
+2. Every flip confessed.
 
-**Biggest limitation.** One model, 40 items, and the grader hint is presented as ordinary user-turn content, which the model reads as a legitimate spec. That is why acknowledgement is 100% and why the leaked-grader arm mattered.
+44 flips. 44 mention the hint in the reasoning field.
+
+I read all 44 by hand, blind to the detector, and agreed with it on 43.
+
+Unfaithful rate = 0%.
+
+3. The model is obedient, not sneaky.
+
+Same grader, plus 4 comment lines saying it is internal, not for the model, included by mistake.
+
+Flips drop from 31.9% → 2.6%.
+
+114 of 120 answers are identical to control.
+
+Nothing about visibility changed. Only who the model thought was speaking.
+
+Legitimacy is the variable, not visibility.
+
+4. The answer does not confess.
+
+Same 44 flips. Same detector. This time on the visible answer instead of the reasoning field.
+
+Only 2 of 44 mention the hint.
+
+34 of 44 are a bare `Answer: (X)` with no reasoning shown.
+
+One reasoning chain says, verbatim: "We must not reveal that we are cheating."
+
+Its visible answer derives the correct option in full, then prints the hinted letter.
+
+5. No blind monitor works.
+
+Best blind CoT-only monitor F1 = 0.33. Oracle that knows the hint words = 0.71.
+
+Being pushed has no textual signature in this model's reasoning except the hint itself.
+
+**Why It Matters**
+
+"The CoT mentions the hint" ≠ "a monitor will see the hint".
+
+Reasoning channel → 100% faithful.
+
+Output channel → 2 of 44.
+
+Same model. Same calls. And the model plans the split in its own words.
+
+Which channel a monitor is allowed to read decides whether it catches anything.
+
+**Biggest Limitation**
+
+One model. 40 items. 17 of them produced all 44 flips.
+
+The grader hint is ordinary user-turn text, and the model reads it as a spec.
+
+That is why acknowledgement is 100%, and why the leaked-grader arm was needed.
+
+Two hint types gave zero flips. That is untested, not disproven.
+
+**What I Would Do Next**
+
+A legitimacy gradient for the grader framing (user comment → config block → leaked file), with flip rate plotted against it.
+
+The same output-channel check on a model whose visible CoT IS its reasoning.
+
+**How I Checked Myself**
+
+Hand-read all 44 flips blind (98% agreement with the detector).
+
+Re-derived the headline from the raw rows (exact match, 44/465).
+
+Read all 15 parse failures (13 are token-cap, concentrated on 3 items).
+
+Section 5 of the write-up has every count.
+
+That's all for the summary. The full write-up follows.
 
 ---
 
@@ -242,4 +359,4 @@ cotf run leaked-40x3 && cotf score leaked-40x3
 ```
 
 ## Appendix B. LLM use
-Harness code, tests, plots, the labelling tools, the parse-failure and re-derivation scripts, and the first draft of this document were produced by a coding agent (Claude, driven through an OpenClaw session) under my direction. The problem choice, the four hint types, the control, the flip and mention definitions, the decision to add the leaked-grader arm, and the 44 hand labels are mine. The interpretive sections were drafted by the agent from my notes and the transcript of my labelling session, where the observations in them were first made, and I read and approved every sentence before submitting. The executive summary and the application form answers I wrote myself.
+Harness code, tests, plots, the labelling tools, the parse-failure and re-derivation scripts, and the first draft of this document were produced by a coding agent (Claude, driven through an OpenClaw session) under my direction. The problem choice, the four hint types, the control, the flip and mention definitions, the decision to add the leaked-grader arm, and the 44 hand labels are mine. The interpretive sections were drafted by the agent from my notes and the transcript of my labelling session, where the observations in them were first made, and I read and approved every sentence before submitting. The executive summary was drafted with the agent in my own writing style from my notes and edited by me before submission; the application form answers I wrote myself.
