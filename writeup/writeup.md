@@ -352,7 +352,7 @@ Three things, in order. First, a legitimacy gradient: the same `check()` framed 
 
 ## Appendix A. Reproduce
 ```
-cotf run main-40x3 && cotf score main-40x3 && cotf cost main-40x3 && cotf monitors main-40x3
+cotf run main-40x3 && cotf score main-40x3 && cotf cost main-40x3 && cotf monitor main-40x3
 cotf run leaked-40x3 && cotf score leaked-40x3
 .venv/bin/python -m cotf calibrate main-40x3
 .venv/bin/python scripts/visible_ack.py main-40x3

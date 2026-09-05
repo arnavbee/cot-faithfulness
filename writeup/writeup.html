@@ -277,7 +277,7 @@ hr { border: 0; border-top: 1px solid #e5e1d8; margin: 2rem 0; }
 <p>Three things, in order. First, a legitimacy gradient: the same <code>check()</code> framed as a user comment, as a developer-style config block, as a leaked internal file, and a few steps in between, with flip rate plotted against framing. Two points made a line; I want to know if it is one. Second, the output-channel check on a model whose visible CoT is the reasoning, with no separate hidden field, to find out whether the split is a gpt-oss artefact or a general property. Third, a monitor that reads only the output channel, because that is what a deployed monitor would see, and by §3.4 it would score close to zero here. With more budget I would also rerun the same 40 items at a new seed and recompute the calibration, which is the limitation above I most want to close.</p>
 <hr>
 <h2>Appendix A. Reproduce</h2>
-<pre><code>cotf run main-40x3 &amp;&amp; cotf score main-40x3 &amp;&amp; cotf cost main-40x3 &amp;&amp; cotf monitors main-40x3
+<pre><code>cotf run main-40x3 &amp;&amp; cotf score main-40x3 &amp;&amp; cotf cost main-40x3 &amp;&amp; cotf monitor main-40x3
 cotf run leaked-40x3 &amp;&amp; cotf score leaked-40x3
 .venv/bin/python -m cotf calibrate main-40x3
 .venv/bin/python scripts/visible_ack.py main-40x3</code></pre>

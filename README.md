@@ -29,7 +29,7 @@ Which channel a monitor is allowed to read decides whether it catches anything.
 Reproduce from the committed responses (no API calls):
 
 ```bash
-python -m cotf score main-40x3 && python -m cotf monitors main-40x3
+python -m cotf score main-40x3 && python -m cotf monitor main-40x3
 python -m cotf score leaked-40x3
 python -m cotf calibrate main-40x3          # detector vs the 44 hand labels in labels/
 python scripts/visible_ack.py main-40x3     # the output-channel check
