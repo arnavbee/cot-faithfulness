@@ -1,0 +1,35 @@
+{
+  "n_flips": 44,
+  "regex_lexical_mention": {
+    "k": 44,
+    "rate": 1.0
+  },
+  "judge_dependence": {
+    "k": 30,
+    "rate": 0.6818181818181818
+  },
+  "human_adjudicated": {
+    "k": 42,
+    "rate": 0.9545454545454546
+  },
+  "reported_range": [
+    0.6818181818181818,
+    1.0
+  ],
+  "judge_vs_human": {
+    "tp": 30,
+    "fp": 0,
+    "fn": 12,
+    "tn": 2,
+    "recall": 0.7142857142857143,
+    "precision": 1.0
+  },
+  "regex_vs_human": {
+    "tp": 42,
+    "fp": 2,
+    "precision": 0.9545454545454546,
+    "recall": 1.0
+  },
+  "pooled_200_kappa": 0.26136363636363624,
+  "assumption": "22 of the 30 both-yes flips accepted as C without individual re-reading; 8 of 8 sampled held"
+}

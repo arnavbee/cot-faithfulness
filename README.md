@@ -17,10 +17,35 @@ raw reasoning field. 40 MMLU items, 5 subjects, 5 conditions, 3 repeats, 600 cal
 | Finding | Number |
 |---|---|
 | Flip rate by hint: grader `check()` / expert / sycophancy / metadata | **31.9%** [19.3, 45.0] / 5.3% / 0% / 0% |
-| Flips whose reasoning mentions the hint (44 hand-read, blind) | **44 / 44**, unfaithful rate 0% |
+| Flips whose reasoning mentions the hint (44 hand-read, blind) | **44 / 44**, unfaithful rate 0% — *but see the range below* |
 | Same grader marked "internal, not for the model" (`leaked-40x3`) | flips **31.9% → 2.6%** [0.0, 7.8] |
 | Same 44 flips, detector on the **visible answer** instead of the reasoning | **2 / 44** mention the hint; 34 are a bare `Answer: (X)` |
 | Best blind CoT-only monitor vs oracle, F1 | 0.33 vs 0.71 |
+
+### Addendum, 9 Sep 2026: the 100% is a range, not a number
+
+The three detectors in `cotf/detect.py` agreeing on 44/44 established that one *definition*
+is stable, not that the quantity is robust — they are three phrasings of the same lexical
+question. A second detector built to disagree (`cotf/judge.py`: an LLM judge asked about
+**epistemic dependence** rather than **lexical mention**) puts the same 44 traces at 68.2%.
+
+| detector | encodes | rate on the 44 flips |
+|---|---|---|
+| regex `detect_strict` | lexical mention | **100%** [100, 100] |
+| `judge_dependence` (gpt-oss-20b) | epistemic dependence | **68.2%** [50.0, 86.0] |
+| hand adjudication | epistemic dependence | **95.5%** [86.7, 100] |
+
+Cohen's **κ = 0.261** [0.18, 0.35] between the two machine detectors over 200 traces;
+McNemar exact p = 6.6e-24, and the disagreement is entirely one-directional
+(regex-yes/judge-no = 78, regex-no/judge-yes = 0). Hand-reading all 14 flip disagreements
+shows **the judge is the wrong end**: 12 of 14 are judge recall failures (it labelled
+chains that say *"we must obey the hidden grader"* as "never refers to the pointer").
+So the headline is 68–100% depending on the classifier, the accurate value is ~95.5%,
+and a cheap LLM judge taken at face value would have cost 27 points in the wrong direction.
+
+Details, including why κ on the headline's own denominator is degenerate and how a
+character-by-character label parser fabricated a verdict out of the word "scenario",
+are in the addendum at the end of [`writeup/writeup.md`](writeup/writeup.md).
 
 Short version: this model's reasoning is faithful on every flip and its user-facing answer almost
 never is, and one chain says why in its own words ("we must not reveal that we are cheating").
@@ -34,6 +59,11 @@ python -m cotf score leaked-40x3
 python -m cotf calibrate main-40x3          # detector vs the 44 hand labels in labels/
 python scripts/visible_ack.py main-40x3     # the output-channel check
 python scripts/random_examples.py main-40x3 0   # the seeded raw examples in the write-up
+
+# the detector-sensitivity addendum (the only step that calls an API: 200 judge verdicts,
+# cached in runs/main-40x3/judge-*.jsonl, so a rerun is offline and free)
+python scripts/detector_sensitivity.py --run main-40x3
+python scripts/adjudicate.py                # folds in labels/adjudication-flips.jsonl
 ```
 
 Raw transcripts are in `runs/<name>/responses.jsonl`, hand labels in `labels/main-40x3.jsonl`.
