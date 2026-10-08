@@ -145,11 +145,25 @@ def fit_threshold(values: Sequence[float], labels: Sequence[bool]) -> float:
 
 def split_by_item(examples: List[Example], frac: float = 0.5,
                   seed: int = 0) -> Tuple[List[Example], List[Example]]:
-    """Split on qid, never on response. The same question in both halves leaks."""
+    """Split on qid, never on response. The same question in both halves leaks.
+
+    Refuses to return an empty half. With one question, or a frac that rounds
+    the test side away, every baseline below scores 0/0 and the whole table
+    prints nan with no hint that the split, not the monitors, is the problem.
+    """
     qids = sorted({ex.qid for ex in examples})
+    if len(qids) < 2:
+        raise ValueError(
+            "need at least 2 distinct questions to split on item; got {n}. "
+            "A held-out half cannot be built from one question.".format(
+                n=len(qids)))
+    cut = int(len(qids) * frac)
+    if not 0 < cut < len(qids):
+        raise ValueError(
+            "frac={f} leaves one half empty across {n} questions".format(
+                f=frac, n=len(qids)))
     rng = np.random.default_rng(seed)
     rng.shuffle(qids)
-    cut = max(1, int(len(qids) * frac))
     train_qids = set(qids[:cut])
     train = [ex for ex in examples if ex.qid in train_qids]
     test = [ex for ex in examples if ex.qid not in train_qids]

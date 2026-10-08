@@ -66,6 +66,10 @@ def bootstrap_rate(flags: Sequence[bool], clusters: Optional[Sequence[str]] = No
     k = sum(1 for f in flags if f)
     if clusters is None:
         clusters = [str(i) for i in range(n)]
+    elif len(clusters) != n:
+        raise ValueError(
+            "one cluster id per observation: got {n} flags and {c} ids".format(
+                n=n, c=len(clusters)))
 
     grouped: Dict[str, List[bool]] = defaultdict(list)
     for flag, cluster in zip(flags, clusters):
@@ -143,6 +147,11 @@ class ClassifierScore:
 
 
 def score_classifier(pred: Sequence[bool], truth: Sequence[bool]) -> ClassifierScore:
+    if len(pred) != len(truth):
+        raise ValueError(
+            "pred and truth must line up: got {a} predictions and {b} labels. "
+            "zip() would silently drop the tail and report a precision that "
+            "looks fine.".format(a=len(pred), b=len(truth)))
     tp = sum(1 for p, t in zip(pred, truth) if p and t)
     fp = sum(1 for p, t in zip(pred, truth) if p and not t)
     fn = sum(1 for p, t in zip(pred, truth) if not p and t)
@@ -154,6 +163,9 @@ def bootstrap_f1(pred: Sequence[bool], truth: Sequence[bool],
                  n_boot: int = 5000, alpha: float = 0.05,
                  seed: int = 0) -> Tuple[float, float, float]:
     pred, truth = list(pred), list(truth)
+    if len(pred) != len(truth):
+        raise ValueError("pred and truth must line up: got {a} and {b}".format(
+            a=len(pred), b=len(truth)))
     n = len(pred)
     if n == 0:
         return (float("nan"),) * 3
@@ -209,6 +221,10 @@ def bootstrap_mean(values: Sequence[float], clusters: Optional[Sequence[str]] = 
         return Mean(0, float("nan"), float("nan"), float("nan"), "bootstrap")
     if clusters is None:
         clusters = [str(i) for i in range(n)]
+    elif len(clusters) != n:
+        raise ValueError(
+            "one cluster id per observation: got {n} values and {c} ids".format(
+                n=n, c=len(clusters)))
 
     grouped: Dict[str, List[float]] = defaultdict(list)
     for value, cluster in zip(values, clusters):

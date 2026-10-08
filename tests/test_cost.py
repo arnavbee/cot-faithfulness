@@ -214,3 +214,8 @@ def test_real_store_attempts_sees_what_all_hides(tmp_path):
     assert len(store.all()) == 1
     assert len(store.attempts()) == 2
     assert failures(store)["wall_seconds"] == pytest.approx(30.0)
+
+
+def test_bootstrap_mean_refuses_a_short_cluster_list():
+    with pytest.raises(ValueError):
+        bootstrap_mean([1.0, 2.0, 3.0], clusters=["q1", "q2"], n_boot=10)

@@ -276,9 +276,12 @@ Interrupted runs resume: every response is keyed by a hash of
 python -m pytest tests -q
 ```
 
-58 tests, all offline, under a second. They cover answer extraction on
+91 tests, all offline, under a second. They cover answer extraction on
 malformed output, detector strictness ordering, interval behaviour at 0 and 1,
-the clustering correction, and the end-to-end recovery of the mock's known rates.
+the clustering correction, the held-out item split (a question never lands in
+both halves, and a split that would empty a half raises instead of printing a
+table of nan), mismatched prediction and label lists, and the end-to-end
+recovery of the mock's known rates.
 
 ## Prior work
 

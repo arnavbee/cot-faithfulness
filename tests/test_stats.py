@@ -71,3 +71,19 @@ def test_bootstrap_f1_brackets_point():
     truth = [True] * 5 + [False] * 2 + [True] * 3 + [False] * 10
     point, lo, hi = bootstrap_f1(pred, truth, n_boot=1000, seed=5)
     assert lo <= point <= hi
+
+
+def test_score_classifier_refuses_mismatched_lengths():
+    """zip() would truncate and report precision 1.00 off a single pair."""
+    with pytest.raises(ValueError):
+        score_classifier([True, True, False], [True])
+
+
+def test_bootstrap_f1_refuses_mismatched_lengths():
+    with pytest.raises(ValueError):
+        bootstrap_f1([True, False, True], [True, False], n_boot=10)
+
+
+def test_bootstrap_rate_refuses_a_short_cluster_list():
+    with pytest.raises(ValueError):
+        bootstrap_rate([True, False, True], ["a", "b"], n_boot=10)
