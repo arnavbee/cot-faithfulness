@@ -324,11 +324,19 @@ def report(cfg: RunConfig, items: List[Item], store: ResponseStore,
     qids = [c.qid for c in calls]
     costs = [c.cost(price) for c in calls]
     latencies = [c.latency for c in calls]
-    services = [c.service for c in calls]
+    # Service time, and anything derived from it, is averaged over the calls
+    # that actually carry provider timing. A call whose provider omitted the
+    # usage timings has service == 0, and folding those zeroes into the mean or
+    # the percentiles would report a model faster than it is -- the one row of
+    # this report that is meant to be quotable about the model.
     timed = [c for c in calls if c.has_timing]
+    services = [c.service for c in timed]
+    service_qids = [c.qid for c in timed]
     completion = sum(c.completion_tokens for c in calls)
     prompt = sum(c.prompt_tokens for c in calls)
-    gen_seconds = sum(c.completion_time for c in calls)
+    # Same reason: tokens/second must divide timed tokens by timed seconds.
+    gen_seconds = sum(c.completion_time for c in timed)
+    gen_tokens = sum(c.completion_tokens for c in timed)
     reasoning_tokens = sum(c.reasoning_tokens for c in calls)
     billed = [c for c in calls if c.billed_reasoning_tokens is not None]
     fail = failures(store)
@@ -351,11 +359,13 @@ def report(cfg: RunConfig, items: List[Item], store: ResponseStore,
         "tokens_per_call": bootstrap_mean([c.total_tokens for c in calls],
                                           clusters=qids, seed=cfg.seed).to_dict(),
         "service_latency": {
-            "mean": sum(services) / len(services),
+            "calls": len(timed),
+            "mean": (sum(services) / len(services)) if services else float("nan"),
             "p50": _pct(services, 50),
             "p95": _pct(services, 95),
-            "mean_ci": bootstrap_mean(services, clusters=qids,
-                                      seed=cfg.seed).to_dict(),
+            "mean_ci": (bootstrap_mean(services, clusters=service_qids,
+                                       seed=cfg.seed).to_dict()
+                        if services else None),
         },
         "wall_latency": {
             "mean": sum(latencies) / len(latencies),
@@ -368,12 +378,13 @@ def report(cfg: RunConfig, items: List[Item], store: ResponseStore,
             "completion": sum(c.completion_time for c in calls) / len(calls),
             "throttle_wait": sum(c.throttle_wait for c in calls) / len(calls),
         },
-        "provider_timing": {"calls": len(timed), "available": bool(timed)},
+        "provider_timing": {"calls": len(timed), "available": bool(timed),
+                            "missing": len(calls) - len(timed)},
         "throttle_share_of_wall": ((sum(c.throttle_wait for c in timed)
                                     / sum(c.latency for c in timed))
                                    if timed and sum(c.latency for c in timed)
                                    else float("nan")),
-        "output_tokens_per_second": (completion / gen_seconds) if gen_seconds else float("nan"),
+        "output_tokens_per_second": (gen_tokens / gen_seconds) if gen_seconds else float("nan"),
         "reasoning_tax": {
             "reasoning_tokens": int(round(reasoning_tokens)),
             "share_of_completion": (reasoning_tokens / completion) if completion else float("nan"),
@@ -461,8 +472,19 @@ def format_report(rep: Dict) -> str:
     br = rep["latency_breakdown"]
     add("")
     add("LATENCY")
-    add("  service (the model)    mean {m:.2f}s   p50 {a:.2f}s   p95 {b:.2f}s".format(
-        m=svc["mean"], a=svc["p50"], b=svc["p95"]))
+    pt = rep.get("provider_timing") or {}
+    missing = pt.get("missing") or 0
+    # Older cost.json files predate service_latency.calls; fall back rather
+    # than claiming a provider reported nothing.
+    timed_calls = svc.get("calls", pt.get("calls", rep.get("calls", 0)))
+    if not timed_calls:
+        add("  service (the model)    not reported by this provider")
+    else:
+        add("  service (the model)    mean {m:.2f}s   p50 {a:.2f}s   p95 {b:.2f}s".format(
+            m=svc["mean"], a=svc["p50"], b=svc["p95"]))
+        if missing:
+            add("        over the {n:,} calls with provider timing; {m:,} lack it "
+                "and are excluded".format(n=timed_calls, m=missing))
     add("  wall (the run)         mean {m:.2f}s   p50 {a:.2f}s   p95 {b:.2f}s".format(
         m=wall["mean"], a=wall["p50"], b=wall["p95"]))
     if not (rep.get("provider_timing") or {}).get("available"):

@@ -3,7 +3,7 @@ import math
 import pytest
 
 from cotf.cost import (PRICES, Call, Price, collect, failures, format_report,
-                       resolve_price)
+                       report, resolve_price)
 from cotf.runner import RunConfig
 from cotf.stats import bootstrap_mean
 
@@ -24,6 +24,19 @@ def _rec(**kw):
                      "prompt_time": 0.05, "completion_time": 1.0}}
     rec.update(kw)
     return rec
+
+
+def cost_report(store, **kw):
+    """cost.report() over a store of control-only records.
+
+    build_cases ignores control records, so the signal block comes back empty
+    and no dataset is needed: this exercises the token, latency and timing
+    arithmetic on its own.
+    """
+    args = {"cfg": RunConfig(name="t", provider="groq"), "items": [],
+            "store": store}
+    args.update(kw)
+    return report(**args)
 
 
 def _call(**kw):
@@ -219,3 +232,43 @@ def test_real_store_attempts_sees_what_all_hides(tmp_path):
 def test_bootstrap_mean_refuses_a_short_cluster_list():
     with pytest.raises(ValueError):
         bootstrap_mean([1.0, 2.0, 3.0], clusters=["q1", "q2"], n_boot=10)
+
+
+def test_service_latency_skips_calls_the_provider_did_not_time():
+    """A missing timing block is not a zero-second request.
+
+    Half of a run can come back without queue/prompt/completion times (a
+    retry served by an OpenAI-compatible endpoint, the mock provider in a
+    mixed store). Averaging those in as 0.0s halves the one row of the report
+    that is meant to be quotable about the model.
+    """
+    untimed = {"prompt_tokens": 100, "completion_tokens": 200,
+               "total_tokens": 300}
+    store = FakeStore([_rec(), _rec(qid="q2", usage=untimed)])
+    rep = cost_report(store)
+    svc = rep["service_latency"]
+    assert svc["calls"] == 1
+    assert svc["mean"] == pytest.approx(1.25)
+    assert svc["p95"] == pytest.approx(1.25)
+    assert rep["provider_timing"]["missing"] == 1
+    # Throughput must divide timed tokens by timed seconds, not all tokens.
+    assert rep["output_tokens_per_second"] == pytest.approx(200.0)
+
+
+def test_report_survives_a_provider_that_times_nothing():
+    untimed = {"prompt_tokens": 100, "completion_tokens": 200,
+               "total_tokens": 300}
+    rep = cost_report(FakeStore([_rec(usage=untimed)]))
+    assert rep["service_latency"]["calls"] == 0
+    assert math.isnan(rep["service_latency"]["mean"])
+    assert rep["service_latency"]["mean_ci"] is None
+    out = format_report(rep)
+    assert "not reported by this provider" in out
+
+
+def test_formatted_report_says_how_many_calls_the_service_row_covers():
+    untimed = {"prompt_tokens": 100, "completion_tokens": 200,
+               "total_tokens": 300}
+    rep = cost_report(FakeStore([_rec(), _rec(qid="q2", usage=untimed)]))
+    out = format_report(rep)
+    assert "1 lack it" in out

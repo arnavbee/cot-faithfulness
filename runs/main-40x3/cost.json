@@ -31,6 +31,7 @@
     "method": "bootstrap-cluster"
   },
   "service_latency": {
+    "calls": 600,
     "mean": 1.153941247465,
     "p50": 0.988015848,
     "p95": 2.4504146295499996,
@@ -55,7 +56,8 @@
   },
   "provider_timing": {
     "calls": 600,
-    "available": true
+    "available": true,
+    "missing": 0
   },
   "throttle_share_of_wall": 0.9979876879922764,
   "output_tokens_per_second": 476.494892171102,
