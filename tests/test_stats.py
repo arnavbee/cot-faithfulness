@@ -87,3 +87,29 @@ def test_bootstrap_f1_refuses_mismatched_lengths():
 def test_bootstrap_rate_refuses_a_short_cluster_list():
     with pytest.raises(ValueError):
         bootstrap_rate([True, False, True], ["a", "b"], n_boot=10)
+
+
+def test_diff_ci_refuses_a_short_cluster_list():
+    """The guard bootstrap_rate already has: a short list would quietly build
+    the interval on 2 of 3 observations while the point estimate used all 3."""
+    with pytest.raises(ValueError):
+        diff_ci([True, False, True], [True, False], ["a", "b"], None, n_boot=10)
+    with pytest.raises(ValueError):
+        diff_ci([True, False], [True, False, True], None, ["a", "b"], n_boot=10)
+
+
+def test_diff_ci_still_clusters_when_the_ids_line_up():
+    """20 items x 5 identical responses is 20 data points on each side, so the
+    clustered interval has to be wider than the one that counts 100."""
+    flags_a, clusters_a, flags_b, clusters_b = [], [], [], []
+    for item in range(20):
+        for _ in range(5):
+            flags_a.append(item < 14)
+            clusters_a.append("item{i}".format(i=item))
+            flags_b.append(item < 6)
+            clusters_b.append("item{i}".format(i=item))
+    naive = diff_ci(flags_a, flags_b, n_boot=4000, seed=6)
+    clustered = diff_ci(flags_a, flags_b, clusters_a, clusters_b,
+                        n_boot=4000, seed=6)
+    assert clustered[0] == pytest.approx(naive[0])
+    assert (clustered[2] - clustered[1]) > (naive[2] - naive[1])

@@ -91,9 +91,16 @@ def diff_ci(flags_a: Sequence[bool], flags_b: Sequence[bool],
             n_boot: int = 10000, alpha: float = 0.05, seed: int = 0
             ) -> Tuple[float, float, float]:
     """Bootstrap CI for rate(a) - rate(b). Returns (point, lo, hi)."""
-    def resample(flags, clusters, rng):
+    def resample(flags, clusters, rng, side):
         grouped: Dict[str, List[bool]] = defaultdict(list)
-        clusters = clusters or [str(i) for i in range(len(flags))]
+        if clusters is None:
+            clusters = [str(i) for i in range(len(flags))]
+        elif len(clusters) != len(flags):
+            raise ValueError(
+                "one cluster id per observation on side {s}: got {n} flags and "
+                "{c} ids. zip() would drop the tail, so the interval would be "
+                "built on fewer observations than the point estimate.".format(
+                    s=side, n=len(flags), c=len(clusters)))
         for flag, cluster in zip(flags, clusters):
             grouped[cluster].append(bool(flag))
         keys = list(grouped)
@@ -105,7 +112,8 @@ def diff_ci(flags_a: Sequence[bool], flags_b: Sequence[bool],
     if not flags_a or not flags_b:
         return (float("nan"), float("nan"), float("nan"))
     rng = np.random.default_rng(seed)
-    boot = resample(flags_a, clusters_a, rng) - resample(flags_b, clusters_b, rng)
+    boot = (resample(flags_a, clusters_a, rng, "a")
+            - resample(flags_b, clusters_b, rng, "b"))
     point = (sum(flags_a) / len(flags_a)) - (sum(flags_b) / len(flags_b))
     lo, hi = np.percentile(boot, [100 * alpha / 2, 100 * (1 - alpha / 2)])
     return (float(point), float(lo), float(hi))
