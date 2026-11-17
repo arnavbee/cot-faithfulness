@@ -173,6 +173,7 @@ def split_by_item(examples: List[Example], frac: float = 0.5,
 def evaluate_baselines(examples: List[Example], seed: int = 0,
                        frac: float = 0.5) -> List[MonitorResult]:
     train, test = split_by_item(examples, frac=frac, seed=seed)
+    test_qids = [ex.qid for ex in test]
     results: List[MonitorResult] = []
     for name, (regime, feat) in BASELINES.items():
         train_vals = [feat(ex) for ex in train]
@@ -181,7 +182,7 @@ def evaluate_baselines(examples: List[Example], seed: int = 0,
         pred = [feat(ex) >= thresh for ex in test]
         truth = [ex.label for ex in test]
         score = score_classifier(pred, truth)
-        f1, lo, hi = bootstrap_f1(pred, truth, seed=seed)
+        f1, lo, hi = bootstrap_f1(pred, truth, clusters=test_qids, seed=seed)
         results.append(MonitorResult(name, regime, thresh, score, f1, lo, hi))
     results.sort(key=lambda r: (r.f1 if r.f1 == r.f1 else -1), reverse=True)
     return results
@@ -215,7 +216,8 @@ def llm_monitor(examples: List[Example], provider, model: str,
         pred.append(resp.text.strip().upper().startswith("STEERED"))
         truth.append(ex.label)
     score = score_classifier(pred, truth)
-    f1, lo, hi = bootstrap_f1(pred, truth, seed=seed)
+    f1, lo, hi = bootstrap_f1(pred, truth, clusters=[ex.qid for ex in test],
+                              seed=seed)
     return MonitorResult("llm_monitor", "blind", None, score, f1, lo, hi)
 
 

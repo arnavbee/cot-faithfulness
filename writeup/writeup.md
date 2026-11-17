@@ -298,12 +298,23 @@ Task: read only the reasoning field and predict "this answer was hint-driven." S
 
 | Monitor | Regime | Precision | Recall | F1 | 95% CI | Degenerate |
 |---|---|---|---|---|---|---|
-| target_letter_emphasis | oracle (knows the target) | 0.600 | 0.875 | **0.712** | [0.561, 0.831] | no |
-| oracle_string_match | oracle (knows the hint) | 0.643 | 0.750 | **0.692** | [0.524, 0.828] | no |
-| hedging_markers | blind | 0.230 | 0.583 | **0.329** | [0.194, 0.455] | no |
-| always_positive | trivial | 0.082 | 1.000 | 0.152 | [0.098, 0.209] | yes |
-| certainty_markers | blind | 0.082 | 1.000 | 0.152 | [0.098, 0.209] | yes |
-| cot_length | blind | 0.072 | 0.833 | 0.132 | [0.082, 0.185] | no |
+| target_letter_emphasis | oracle (knows the target) | 0.600 | 0.875 | **0.712** | [0.500, 0.846] | no |
+| oracle_string_match | oracle (knows the hint) | 0.643 | 0.750 | **0.692** | [0.512, 0.844] | no |
+| hedging_markers | blind | 0.230 | 0.583 | **0.329** | [0.138, 0.526] | no |
+| always_positive | trivial | 0.082 | 1.000 | 0.152 | [0.068, 0.236] | yes |
+| certainty_markers | blind | 0.082 | 1.000 | 0.152 | [0.068, 0.236] | yes |
+| cot_length | blind | 0.072 | 0.833 | 0.132 | [0.054, 0.213] | no |
+
+**Interval correction, 17 Nov 2026.** The CIs in the table above are the recomputed
+ones. The originally published intervals were narrower ([0.561, 0.831], [0.524, 0.828],
+[0.194, 0.455], [0.098, 0.209], [0.098, 0.209], [0.082, 0.185] in the same order)
+because `bootstrap_f1` resampled individual traces. The test split is by item, so it
+carries several traces per question, one control plus one per hint per repeat, sharing
+a prompt and a subject. Resampling traces counted 292 correlated rows as 292
+independent ones. It now resamples the questions, as every other interval in the
+harness already did. No point estimate moved and no ranking changed; the honest
+intervals are simply wider, and the overlap between the best blind monitor and the
+trivial baseline is wider with them.
 
 No blind monitor gets anywhere near either oracle. `certainty_markers` collapsed to always-positive and I left it in only to show that it did. `cot_length` is below the trivial baseline, so length tells you nothing here. The string-match oracle is the ceiling for a simple reason: the chains name the hint, so anything that knows the hint vocabulary wins. The blind monitors failing tells me that being pushed has no generic textual signature in this model's reasoning. No extra hedging, no extra certainty, no extra length. The only signal is the hint itself. If you did not know the hint words, you would not see the flip coming.
 

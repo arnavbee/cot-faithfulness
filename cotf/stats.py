@@ -168,8 +168,19 @@ def score_classifier(pred: Sequence[bool], truth: Sequence[bool]) -> ClassifierS
 
 
 def bootstrap_f1(pred: Sequence[bool], truth: Sequence[bool],
+                 clusters: Optional[Sequence[str]] = None,
                  n_boot: int = 5000, alpha: float = 0.05,
                  seed: int = 0) -> Tuple[float, float, float]:
+    """Percentile bootstrap CI for F1, resampling CLUSTERS not observations.
+
+    The monitor test set holds several traces per question: one control response
+    plus one per hint per repeat, all sharing a prompt, a subject and whatever
+    makes that question easy or hard. Resampling traces would treat them as
+    independent and hand back an interval narrower than the data earns, which is
+    the one thing the module docstring promises not to do. Pass the question id
+    per trace. With `clusters=None` every observation is its own cluster, which
+    is the old behaviour and correct only when the rows really are independent.
+    """
     pred, truth = list(pred), list(truth)
     if len(pred) != len(truth):
         raise ValueError("pred and truth must line up: got {a} and {b}".format(
@@ -177,10 +188,24 @@ def bootstrap_f1(pred: Sequence[bool], truth: Sequence[bool],
     n = len(pred)
     if n == 0:
         return (float("nan"),) * 3
+    if clusters is None:
+        clusters = [str(i) for i in range(n)]
+    elif len(clusters) != n:
+        raise ValueError(
+            "one cluster id per observation: got {n} predictions and {c} ids. "
+            "zip() would drop the tail, so the interval would be built on "
+            "fewer rows than the point estimate.".format(n=n, c=len(clusters)))
+
+    grouped: Dict[str, List[int]] = defaultdict(list)
+    for i, cluster in enumerate(clusters):
+        grouped[str(cluster)].append(i)
+    keys = list(grouped)
+
     rng = np.random.default_rng(seed)
     scores = []
     for _ in range(n_boot):
-        idx = rng.integers(0, n, size=n)
+        draw = rng.integers(0, len(keys), size=len(keys))
+        idx = [i for d in draw for i in grouped[keys[d]]]
         s = score_classifier([pred[i] for i in idx], [truth[i] for i in idx])
         f1 = s.f1
         scores.append(f1 if f1 == f1 else 0.0)

@@ -113,3 +113,29 @@ def test_diff_ci_still_clusters_when_the_ids_line_up():
                         n_boot=4000, seed=6)
     assert clustered[0] == pytest.approx(naive[0])
     assert (clustered[2] - clustered[1]) > (naive[2] - naive[1])
+
+
+def test_bootstrap_f1_refuses_a_short_cluster_list():
+    with pytest.raises(ValueError):
+        bootstrap_f1([True, False, True], [True, False, True], clusters=["a", "b"],
+                     n_boot=10)
+
+
+def test_bootstrap_f1_cluster_interval_is_not_narrower_than_the_naive_one():
+    """Repeats of the same question are not fresh evidence.
+
+    Each question below contributes four identical rows. Resampling rows pretends
+    there are 40 independent traces and shrinks the interval; resampling the ten
+    questions keeps it honest.
+    """
+    pred, truth, qids = [], [], []
+    for i in range(10):
+        hit = i < 6
+        for _ in range(4):
+            pred.append(True)
+            truth.append(hit)
+            qids.append("q{i}".format(i=i))
+    _, naive_lo, naive_hi = bootstrap_f1(pred, truth, n_boot=2000, seed=3)
+    point, lo, hi = bootstrap_f1(pred, truth, clusters=qids, n_boot=2000, seed=3)
+    assert lo <= point <= hi
+    assert (hi - lo) > (naive_hi - naive_lo)
